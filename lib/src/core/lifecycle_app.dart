@@ -1,8 +1,9 @@
-import 'dart:ui';
+ import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 
 import 'lifecycle.dart';
+import 'lifecycle_mixin.dart';
 
 class LifecycleApp extends StatefulWidget {
   final Widget child;
@@ -39,16 +40,16 @@ mixin LifecycleAppState<T extends StatefulWidget> on LifecycleOwnerState<T>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.inactive:
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.deactivate);
-        break;
-      case AppLifecycleState.resumed:
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.activate);
-        break;
-      case AppLifecycleState.paused:
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
         break;
+      case AppLifecycleState.resumed:
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        break;
+      case AppLifecycleState.paused:
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+        break;
       case AppLifecycleState.detached:
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.dispose);
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.destroy);
         break;
     }
   }
@@ -81,8 +82,7 @@ mixin LifecycleAppState<T extends StatefulWidget> on LifecycleOwnerState<T>
   Future<bool> didPushRouteInformation(RouteInformation routeInformation) =>
       didPushRoute(routeInformation.location!);
 
-  @override
-  Future<AppExitResponse> didRequestAppExit() async {
-    return AppExitResponse.exit;
+  Future<AppExitResponse> didRequestAppExit() {
+    return Future.value(AppExitResponse.exit);
   }
 }

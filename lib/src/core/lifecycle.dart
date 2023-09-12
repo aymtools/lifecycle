@@ -4,10 +4,10 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 
 ///生命周期的事件
-enum LifecycleEvent { init, ready, activate, deactivate, pause, dispose }
+enum LifecycleEvent { create, start, resume, pause, stop, destroy }
 
 ///生命周期的状态
-enum LifecycleState { detached, initialized, paused, inactive, resumed }
+enum LifecycleState { destroyed, initialized, created, started, resumed }
 
 extension LifecycleStateOp on LifecycleState {
   operator >(LifecycleState state) => index > state.index;
@@ -37,16 +37,18 @@ abstract class Lifecycle {
 
   void removeObserver(LifecycleObserver observer, [LifecycleState? endWith]);
 
-  LifecycleState getCurrentState();
+  LifecycleState get currentState;
 
-  @protected
-  void bindParentLifecycle(Lifecycle? parent);
+  Lifecycle? get parent;
 }
 
 class LifecycleRegistry extends Lifecycle {
   final LifecycleOwner provider;
 
   Lifecycle? _parentLifecycle;
+
+  @override
+  Lifecycle? get parent => _parentLifecycle;
 
   //由父容器提供的最大值
   LifecycleState _maxState = LifecycleState.resumed;
@@ -69,7 +71,7 @@ class LifecycleRegistry extends Lifecycle {
 
   @override
   void addObserver(LifecycleObserver observer, [LifecycleState? startWith]) {
-    _addObserver(observer, startWith ?? LifecycleState.detached);
+    _addObserver(observer, startWith ?? LifecycleState.destroyed);
   }
 
   @override
@@ -84,11 +86,11 @@ class LifecycleRegistry extends Lifecycle {
 
   void _addObserver(LifecycleObserver observer, LifecycleState? defState) {
     LifecycleState current = getCurrentState();
-    if (current == LifecycleState.detached) return;
+    if (current == LifecycleState.destroyed) return;
     if (_observers.containsKey(observer)) {
       return;
     }
-    defState ??= LifecycleState.detached;
+    defState ??= LifecycleState.destroyed;
 
     defState = _minState(current, defState);
     _ObserverDispatcher dispatcher = _ObserverDispatcher(defState, observer);
@@ -96,13 +98,13 @@ class LifecycleRegistry extends Lifecycle {
     _observers[observer] = dispatcher;
   }
 
-  @override
-  LifecycleState getCurrentState() {
-    return _minState(_expectState, _maxState);
-  }
+  void clearObserver() => _observers.clear();
 
   @override
-  @protected
+  LifecycleState get currentState => getCurrentState();
+
+  LifecycleState getCurrentState() => _minState(_expectState, _maxState);
+
   void bindParentLifecycle(Lifecycle? parent) {
     if (_parentLifecycle == parent) {
       return;
@@ -111,7 +113,7 @@ class LifecycleRegistry extends Lifecycle {
     _parentLifecycle = parent;
 
     if (_parentLifecycle == null) {
-      _handleMaxLifecycleStateChange(_maxState);
+      _handleMaxLifecycleStateChange(LifecycleState.resumed);
     }
   }
 
@@ -144,43 +146,42 @@ class LifecycleRegistry extends Lifecycle {
 
   static LifecycleState _getStateAfter(LifecycleEvent event) {
     switch (event) {
-      case LifecycleEvent.init:
+      case LifecycleEvent.create:
+      case LifecycleEvent.stop:
+        return LifecycleState.created;
+      case LifecycleEvent.start:
       case LifecycleEvent.pause:
-        return LifecycleState.paused;
-      case LifecycleEvent.ready:
-      case LifecycleEvent.deactivate:
-        return LifecycleState.inactive;
-      case LifecycleEvent.activate:
+        return LifecycleState.started;
+      case LifecycleEvent.resume:
         return LifecycleState.resumed;
-      case LifecycleEvent.dispose:
-        return LifecycleState.detached;
+      case LifecycleEvent.destroy:
+        return LifecycleState.destroyed;
     }
   }
 
   static LifecycleEvent _downEvent(LifecycleState state) {
     switch (state) {
       case LifecycleState.initialized:
+      case LifecycleState.destroyed:
         throw "Unexpected state value $state";
-      case LifecycleState.paused:
-        return LifecycleEvent.dispose;
-      case LifecycleState.inactive:
-        return LifecycleEvent.pause;
+      case LifecycleState.created:
+        return LifecycleEvent.destroy;
+      case LifecycleState.started:
+        return LifecycleEvent.stop;
       case LifecycleState.resumed:
-        return LifecycleEvent.deactivate;
-      case LifecycleState.detached:
-        throw "Unexpected state value $state";
+        return LifecycleEvent.pause;
     }
   }
 
   static LifecycleEvent _upEvent(LifecycleState state) {
     switch (state) {
       case LifecycleState.initialized:
-      case LifecycleState.detached:
-        return LifecycleEvent.init;
-      case LifecycleState.paused:
-        return LifecycleEvent.ready;
-      case LifecycleState.inactive:
-        return LifecycleEvent.activate;
+      case LifecycleState.destroyed:
+        return LifecycleEvent.create;
+      case LifecycleState.created:
+        return LifecycleEvent.start;
+      case LifecycleState.started:
+        return LifecycleEvent.resume;
       case LifecycleState.resumed:
         throw "Unexpected state value $state";
     }
@@ -208,17 +209,17 @@ class LifecycleRegistry extends Lifecycle {
 }
 
 abstract mixin class LifecycleEventObserver implements LifecycleObserver {
-  void onInit(LifecycleOwner owner);
+  void onCreate(LifecycleOwner owner);
 
-  void onReady(LifecycleOwner owner);
+  void onStart(LifecycleOwner owner);
 
-  void onActivate(LifecycleOwner owner);
-
-  void onDeactiviate(LifecycleOwner owner);
+  void onResume(LifecycleOwner owner);
 
   void onPause(LifecycleOwner owner);
 
-  void onDispose(LifecycleOwner owner);
+  void onStop(LifecycleOwner owner);
+
+  void onDestroy(LifecycleOwner owner);
 
   void onAnyEvent(LifecycleOwner owner, LifecycleEvent event);
 }
@@ -260,7 +261,7 @@ class _LifecycleParentStateChangeObserver with LifecycleStateChangeObserver {
     if (owner.lifecycle == _parentLifecycle) {
       callback.call(owner, state);
     }
-    if (state == LifecycleState.detached) {
+    if (state == LifecycleState.destroyed) {
       childLifecycle.removeObserver(this);
       _parentLifecycle?.removeObserver(this);
     }
@@ -329,23 +330,23 @@ class _EventObserverDispatcher extends _ObserverDispatcher {
 
   void _dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
     switch (event) {
-      case LifecycleEvent.init:
-        _observer.onInit(owner);
+      case LifecycleEvent.create:
+        _observer.onCreate(owner);
         break;
-      case LifecycleEvent.ready:
-        _observer.onReady(owner);
+      case LifecycleEvent.start:
+        _observer.onStart(owner);
         break;
-      case LifecycleEvent.activate:
-        _observer.onActivate(owner);
-        break;
-      case LifecycleEvent.deactivate:
-        _observer.onDeactiviate(owner);
+      case LifecycleEvent.resume:
+        _observer.onResume(owner);
         break;
       case LifecycleEvent.pause:
         _observer.onPause(owner);
         break;
-      case LifecycleEvent.dispose:
-        _observer.onDispose(owner);
+      case LifecycleEvent.stop:
+        _observer.onStop(owner);
+        break;
+      case LifecycleEvent.destroy:
+        _observer.onDestroy(owner);
         break;
     }
     _observer.onAnyEvent(owner, event);
@@ -354,50 +355,5 @@ class _EventObserverDispatcher extends _ObserverDispatcher {
   @override
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
     _dispatchEvent(owner, event);
-  }
-}
-
-mixin LifecycleOwnerState<T extends StatefulWidget> on State<T>
-    implements LifecycleOwner {
-  late LifecycleRegistry _lifecycle;
-
-  @override
-  Lifecycle get lifecycle => _lifecycle;
-
-  @protected
-  LifecycleRegistry get lifecycleRegistry => _lifecycle;
-
-  @override
-  void initState() {
-    _lifecycle = LifecycleRegistry(this);
-    super.initState();
-    lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.init);
-  }
-
-  @override
-  void dispose() {
-    lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.dispose);
-    super.dispose();
-    _lifecycle._observers.clear();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    Lifecycle? parentLifecycle =
-        context.findAncestorStateOfType<LifecycleOwnerState>()?.lifecycle;
-    lifecycleRegistry.bindParentLifecycle(parentLifecycle);
-  }
-
-  @override
-  void activate() {
-    lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.activate);
-    super.activate();
-  }
-
-  @override
-  void deactivate() {
-    lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.deactivate);
-    super.deactivate();
   }
 }
