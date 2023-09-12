@@ -17,11 +17,11 @@ extension LifecycleObserverAutoRegisterMixinExt
   Future<LifecycleEvent> nextLifecycleOnActivateEvent() =>
       nextLifecycleEvent(LifecycleEvent.activate);
 
-  Future<LifecycleState> nextLifecycleState(LifecycleState event) {
+  Future<LifecycleState> nextLifecycleState(LifecycleState state) {
     var observer = LifecycleStateObserverStream();
     registerLifecycleObserver(observer, currentLifecycleState);
     return observer.eventStream
-        .firstWhere((e) => e == event)
+        .firstWhere((e) => e == state)
         .whenComplete(() => removeLifecycleObserver(observer, false));
   }
 
@@ -77,14 +77,14 @@ class LifecycleEventObserverStream implements LifecycleEventObserver {
 }
 
 class LifecycleStateObserverStream implements LifecycleStateChangeObserver {
+  final StreamController<LifecycleState> _controller = StreamController<LifecycleState>();
+
   late Stream<LifecycleState> _eventStream;
-  late StreamController<LifecycleState> _controller;
 
   Stream<LifecycleState> get eventStream => _eventStream;
 
   LifecycleEventObserverStream() {
-    _controller = StreamController<LifecycleState>();
-    _eventStream = _controller.stream.asBroadcastStream();
+    return _eventStream = _controller.stream.asBroadcastStream();
   }
 
   @override

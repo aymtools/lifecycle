@@ -207,7 +207,7 @@ class LifecycleRegistry extends Lifecycle {
   }
 }
 
-abstract class LifecycleEventObserver implements LifecycleObserver {
+abstract mixin class LifecycleEventObserver implements LifecycleObserver {
   void onInit(LifecycleOwner owner);
 
   void onReady(LifecycleOwner owner);
@@ -223,7 +223,7 @@ abstract class LifecycleEventObserver implements LifecycleObserver {
   void onAnyEvent(LifecycleOwner owner, LifecycleEvent event);
 }
 
-abstract class LifecycleStateChangeObserver implements LifecycleObserver {
+abstract mixin class LifecycleStateChangeObserver implements LifecycleObserver {
   void onStateChange(LifecycleOwner owner, LifecycleState state);
 }
 
