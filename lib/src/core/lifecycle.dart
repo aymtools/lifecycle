@@ -1,8 +1,6 @@
 import 'dart:collection';
 import 'dart:math';
 
-import 'package:flutter/widgets.dart';
-
 ///生命周期的事件
 enum LifecycleEvent { create, start, resume, pause, stop, destroy }
 
