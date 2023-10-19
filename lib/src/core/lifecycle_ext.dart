@@ -1,11 +1,33 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
-
 import 'lifecycle.dart';
 import 'lifecycle_mixin.dart';
 
-class LifecycleEventObserverStream implements LifecycleEventObserver {
+abstract mixin class LifecycleEventDefaultObserver
+    implements LifecycleEventObserver {
+  @override
+  void onAnyEvent(LifecycleOwner owner, LifecycleEvent event) {}
+
+  @override
+  void onCreate(LifecycleOwner owner) {}
+
+  @override
+  void onPause(LifecycleOwner owner) {}
+
+  @override
+  void onResume(LifecycleOwner owner) {}
+
+  @override
+  void onStart(LifecycleOwner owner) {}
+
+  @override
+  void onStop(LifecycleOwner owner) {}
+
+  @override
+  void onDestroy(LifecycleOwner owner) {}
+}
+
+class LifecycleEventObserverStream with LifecycleEventDefaultObserver {
   late final StreamController<LifecycleEvent> _controller =
       StreamController<LifecycleEvent>();
   late final Stream<LifecycleEvent> _eventStream =
@@ -29,24 +51,6 @@ class LifecycleEventObserverStream implements LifecycleEventObserver {
         break;
     }
   }
-
-  @override
-  void onCreate(LifecycleOwner owner) {}
-
-  @override
-  void onDestroy(LifecycleOwner owner) {}
-
-  @override
-  void onPause(LifecycleOwner owner) {}
-
-  @override
-  void onResume(LifecycleOwner owner) {}
-
-  @override
-  void onStart(LifecycleOwner owner) {}
-
-  @override
-  void onStop(LifecycleOwner owner) {}
 }
 
 class LifecycleStateObserverStream implements LifecycleStateChangeObserver {
