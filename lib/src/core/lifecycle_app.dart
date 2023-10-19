@@ -15,14 +15,14 @@ class LifecycleApp extends StatefulWidget {
 }
 
 class _LifecycleAppState extends State<LifecycleApp>
-    with LifecycleOwnerState, LifecycleAppState {
+    with LifecycleOwnerStateMixin, LifecycleAppState {
   @override
   Widget build(BuildContext context) {
     return widget.child;
   }
 }
 
-mixin LifecycleAppState<T extends StatefulWidget> on LifecycleOwnerState<T>
+mixin LifecycleAppState<T extends StatefulWidget> on LifecycleOwnerStateMixin<T>
     implements WidgetsBindingObserver {
   @override
   void initState() {

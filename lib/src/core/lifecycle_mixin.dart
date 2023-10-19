@@ -104,7 +104,7 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
     var l = lifecycle;
     while (l != null && l is LifecycleRegistry) {
       var owner = l.provider;
-      if (owner is LifecycleOwnerState) {
+      if (owner is LifecycleOwnerStateMixin) {
         LO? o = owner._delegate._observers.keys.whereType<LO>().firstOrNull;
         if (o != null) return o;
       }
@@ -145,7 +145,7 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
   void didChangeDependencies() {
     super.didChangeDependencies();
     LifecycleOwner? lifecycleOwner =
-        context.findAncestorStateOfType<LifecycleOwnerState>();
+        context.findAncestorStateOfType<LifecycleOwnerStateMixin>();
     _delegate.lifecycleOwner = lifecycleOwner;
   }
 
@@ -156,7 +156,7 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
   }
 }
 
-mixin LifecycleOwnerState<T extends StatefulWidget> on State<T>
+mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
     implements LifecycleOwner, LifecycleObserverRegister {
   late final LifecycleRegistry _lifecycle = LifecycleRegistry(this);
 
@@ -218,7 +218,7 @@ mixin LifecycleOwnerState<T extends StatefulWidget> on State<T>
   void didChangeDependencies() {
     super.didChangeDependencies();
     Lifecycle? parentLifecycle =
-        context.findAncestorStateOfType<LifecycleOwnerState>()?.lifecycle;
+        context.findAncestorStateOfType<LifecycleOwnerStateMixin>()?.lifecycle;
     lifecycleRegistry.bindParentLifecycle(parentLifecycle);
     lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
     _isInactivate = true;

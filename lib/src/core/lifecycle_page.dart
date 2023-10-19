@@ -9,7 +9,7 @@ abstract class _RouteChanger {
 }
 
 mixin LifecycleRoutePageState<T extends StatefulWidget>
-    on LifecycleOwnerState<T> implements _RouteChanger {
+    on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   LifecycleNavigatorObserver? _observer;
 
   @override
@@ -135,7 +135,7 @@ class LifecycleRoutePage extends StatefulWidget {
 class _LifecycleRoutePageState extends State<LifecycleRoutePage>
     with
         AutomaticKeepAliveClientMixin,
-        LifecycleOwnerState,
+        LifecycleOwnerStateMixin,
         LifecycleRoutePageState {
   @override
   bool get wantKeepAlive => true;
