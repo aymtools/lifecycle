@@ -1,5 +1,5 @@
-name: life_cycle
-description: A new Flutter project.
+name: anlifecycle
+description: A package similar to Androidx lifecycle.
 version: 0.0.1
 homepage:
 
@@ -13,8 +13,6 @@ dependencies:
   weak_collections: ^1.0.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_lints: ^2.0.0
 
 # For information on the generic Dart part of this file, see the

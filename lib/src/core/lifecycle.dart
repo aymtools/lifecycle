@@ -1,8 +1,6 @@
 import 'dart:collection';
 import 'dart:math';
 
-import 'package:flutter/widgets.dart';
-
 ///生命周期的事件
 enum LifecycleEvent { create, start, resume, pause, stop, destroy }
 
@@ -79,7 +77,7 @@ class LifecycleRegistry extends Lifecycle {
     _ObserverDispatcher? dispatcher = _observers.remove(observer);
     if (dispatcher != null && endWith != null) {
       if (endWith.index < dispatcher._state.index) {
-        _stateMover(dispatcher, endWith);
+        _moveState(dispatcher, endWith);
       }
     }
   }
@@ -94,7 +92,7 @@ class LifecycleRegistry extends Lifecycle {
 
     defState = _minState(current, defState);
     _ObserverDispatcher dispatcher = _ObserverDispatcher(defState, observer);
-    _stateMover(dispatcher, getCurrentState());
+    _moveState(dispatcher, getCurrentState());
     _observers[observer] = dispatcher;
   }
 
@@ -139,7 +137,7 @@ class LifecycleRegistry extends Lifecycle {
       return;
     }
     _observers.values.toList().reversed.forEach((observer) {
-      _stateMover(observer, next);
+      _moveState(observer, next);
     });
     _lastState = next;
   }
@@ -187,7 +185,7 @@ class LifecycleRegistry extends Lifecycle {
     }
   }
 
-  _ObserverDispatcher _stateMover(
+  _ObserverDispatcher _moveState(
       _ObserverDispatcher dispatcher, LifecycleState destination) {
     LifecycleState current = dispatcher._state;
     if (current == destination) return dispatcher;

@@ -1,4 +1,4 @@
-library life_cycle;
+library anlifecycle;
 
 export 'src/core/lifecycle.dart';
 export 'src/core/lifecycle_app.dart';

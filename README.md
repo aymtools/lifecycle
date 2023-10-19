@@ -1,4 +1,4 @@
-将flutter中state相关的生命周期转换为与widget无关
+将flutter中state相关的生命周期转换为与widget无关，使用方式同androidx中的lifecycle
 
 ## Features
 
