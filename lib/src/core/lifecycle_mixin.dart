@@ -157,9 +157,10 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
 }
 
 mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
-    implements LifecycleOwner, LifecycleObserverRegister {
+    implements LifecycleOwner, LifecycleObserverRegisterMixin<T> {
   late final LifecycleRegistry _lifecycle = LifecycleRegistry(this);
 
+  @override
   late final _LifecycleObserverRegisterDelegate _delegate =
       _LifecycleObserverRegisterDelegate()..lifecycleOwner = this;
 
