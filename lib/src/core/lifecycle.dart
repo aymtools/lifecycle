@@ -24,7 +24,67 @@ extension LifecycleStateOp on LifecycleState {
 LifecycleState _minState(LifecycleState state, LifecycleState state1) =>
     LifecycleState.values[min(state.index, state1.index)];
 
-abstract class LifecycleObserver {}
+abstract class LifecycleObserver {
+  factory LifecycleObserver.onStateChange(
+          void Function(LifecycleOwner owner, LifecycleState state)
+              onStateChange) =>
+      _ProxyLifecycleStateChangeObserver(onStateChanger: onStateChange);
+
+  factory LifecycleObserver.stateChange(
+          void Function(LifecycleState state) stateChange) =>
+      _ProxyLifecycleStateChangeObserver(stateChanger: stateChange);
+
+  factory LifecycleObserver.onEventAny(
+          void Function(LifecycleOwner owner, LifecycleEvent event)
+              onAnyEvent) =>
+      _ProxyLifecycleEventObserver(onEventAny: onAnyEvent);
+
+  factory LifecycleObserver.eventAny(
+          void Function(LifecycleEvent event) anyEvent) =>
+      _ProxyLifecycleEventObserver(eventAny: anyEvent);
+
+  factory LifecycleObserver.onEventCreate(
+          void Function(LifecycleOwner owner) onEvent) =>
+      _ProxyLifecycleEventObserver(onEventCreate: onEvent);
+
+  factory LifecycleObserver.eventCreate(void Function() event) =>
+      _ProxyLifecycleEventObserver(eventCreate: event);
+
+  factory LifecycleObserver.onEventStart(
+          void Function(LifecycleOwner owner) onEvent) =>
+      _ProxyLifecycleEventObserver(onEventStart: onEvent);
+
+  factory LifecycleObserver.eventStart(void Function() event) =>
+      _ProxyLifecycleEventObserver(eventStart: event);
+
+  factory LifecycleObserver.onEventResume(
+          void Function(LifecycleOwner owner) onEvent) =>
+      _ProxyLifecycleEventObserver(onEventResume: onEvent);
+
+  factory LifecycleObserver.eventResume(void Function() event) =>
+      _ProxyLifecycleEventObserver(eventResume: event);
+
+  factory LifecycleObserver.onEventPause(
+          void Function(LifecycleOwner owner) onEvent) =>
+      _ProxyLifecycleEventObserver(onEventPause: onEvent);
+
+  factory LifecycleObserver.eventPause(void Function() event) =>
+      _ProxyLifecycleEventObserver(eventPause: event);
+
+  factory LifecycleObserver.onEventStop(
+          void Function(LifecycleOwner owner) onEvent) =>
+      _ProxyLifecycleEventObserver(onEventStop: onEvent);
+
+  factory LifecycleObserver.eventStop(void Function() event) =>
+      _ProxyLifecycleEventObserver(eventStop: event);
+
+  factory LifecycleObserver.onEventDestroy(
+          void Function(LifecycleOwner owner) onEvent) =>
+      _ProxyLifecycleEventObserver(onEventDestroy: onEvent);
+
+  factory LifecycleObserver.eventDestroy(void Function() event) =>
+      _ProxyLifecycleEventObserver(eventDestroy: event);
+}
 
 abstract class LifecycleOwner {
   Lifecycle get lifecycle;
@@ -353,5 +413,101 @@ class _EventObserverDispatcher extends _ObserverDispatcher {
   @override
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
     _dispatchEvent(owner, event);
+  }
+}
+
+class _ProxyLifecycleStateChangeObserver
+    implements LifecycleStateChangeObserver {
+  final void Function(LifecycleOwner owner, LifecycleState state)?
+      onStateChanger;
+  final void Function(LifecycleState state)? stateChanger;
+
+  _ProxyLifecycleStateChangeObserver({this.onStateChanger, this.stateChanger});
+
+  @override
+  void onStateChange(LifecycleOwner owner, LifecycleState state) {
+    onStateChanger?.call(owner, state);
+    stateChanger?.call(state);
+  }
+}
+
+class _ProxyLifecycleEventObserver implements LifecycleEventObserver {
+  final void Function(LifecycleOwner owner, LifecycleEvent event)? onEventAny;
+  final void Function(LifecycleEvent event)? eventAny;
+
+  final void Function(LifecycleOwner owner)? onEventCreate;
+  final void Function()? eventCreate;
+
+  final void Function(LifecycleOwner owner)? onEventStart;
+  final void Function()? eventStart;
+
+  final void Function(LifecycleOwner owner)? onEventPause;
+  final void Function()? eventPause;
+
+  final void Function(LifecycleOwner owner)? onEventResume;
+  final void Function()? eventResume;
+
+  final void Function(LifecycleOwner owner)? onEventStop;
+  final void Function()? eventStop;
+
+  final void Function(LifecycleOwner owner)? onEventDestroy;
+  final void Function()? eventDestroy;
+
+  _ProxyLifecycleEventObserver(
+      {this.onEventAny,
+      this.eventAny,
+      this.onEventCreate,
+      this.eventCreate,
+      this.onEventStart,
+      this.eventStart,
+      this.onEventPause,
+      this.eventPause,
+      this.onEventResume,
+      this.eventResume,
+      this.onEventStop,
+      this.eventStop,
+      this.onEventDestroy,
+      this.eventDestroy});
+
+  @override
+  void onAnyEvent(LifecycleOwner owner, LifecycleEvent event) {
+    onEventAny?.call(owner, event);
+    eventAny?.call(event);
+  }
+
+  @override
+  void onCreate(LifecycleOwner owner) {
+    onEventCreate?.call(owner);
+    eventCreate?.call();
+  }
+
+  @override
+  void onDestroy(LifecycleOwner owner) {
+    onEventDestroy?.call(owner);
+    eventDestroy?.call();
+  }
+
+  @override
+  void onPause(LifecycleOwner owner) {
+    onEventPause?.call(owner);
+    eventPause?.call();
+  }
+
+  @override
+  void onResume(LifecycleOwner owner) {
+    onEventResume?.call(owner);
+    eventResume?.call();
+  }
+
+  @override
+  void onStart(LifecycleOwner owner) {
+    onEventStart?.call(owner);
+    eventStart?.call();
+  }
+
+  @override
+  void onStop(LifecycleOwner owner) {
+    onEventStop?.call(owner);
+    eventStop?.call();
   }
 }
