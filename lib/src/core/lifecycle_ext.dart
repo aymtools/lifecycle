@@ -140,10 +140,9 @@ extension _LifecycleOwnerFinder on LifecycleOwner {
 extension LifecycleObserverAutoRegisterMixinExt on LifecycleObserverRegister {
   Future<LifecycleEvent> nextLifecycleEvent(LifecycleEvent event) {
     var observer = LifecycleEventObserverStream();
-    registerLifecycleObserver(observer, currentLifecycleState);
-    return observer.eventStream
-        .firstWhere((e) => e == event)
-        .whenComplete(() => removeLifecycleObserver(observer, false));
+    registerLifecycleObserver(observer, startWith: currentLifecycleState);
+    return observer.eventStream.firstWhere((e) => e == event).whenComplete(
+        () => removeLifecycleObserver(observer, fullCycle: false));
   }
 
   Future<LifecycleEvent> nextLifecycleResumeEvent() =>
@@ -151,10 +150,9 @@ extension LifecycleObserverAutoRegisterMixinExt on LifecycleObserverRegister {
 
   Future<LifecycleState> nextLifecycleState(LifecycleState state) {
     var observer = LifecycleStateObserverStream();
-    registerLifecycleObserver(observer, currentLifecycleState);
-    return observer.stateStream
-        .firstWhere((e) => e == state)
-        .whenComplete(() => removeLifecycleObserver(observer, false));
+    registerLifecycleObserver(observer, startWith: currentLifecycleState);
+    return observer.stateStream.firstWhere((e) => e == state).whenComplete(
+        () => removeLifecycleObserver(observer, fullCycle: false));
   }
 
   Future<LifecycleState> nextLifecycleResumedState() =>
