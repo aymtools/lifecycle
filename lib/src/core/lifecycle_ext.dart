@@ -3,8 +3,7 @@ import 'dart:async';
 import 'lifecycle.dart';
 import 'lifecycle_mixin.dart';
 
-abstract mixin class LifecycleEventDefaultObserver
-    implements LifecycleEventObserver {
+mixin LifecycleEventDefaultObserver implements LifecycleEventObserver {
   @override
   void onAnyEvent(LifecycleOwner owner, LifecycleEvent event) {}
 
