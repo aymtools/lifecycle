@@ -97,13 +97,15 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
 
   @override
   LO? findLifecycleObserver<LO extends LifecycleObserver>() {
-    LO? o = _observers.keys.whereType<LO>().firstOrNull;
+    final os = _observers.keys.whereType<LO>();
+    LO? o = os.isEmpty ? null : os.first;
     if (o != null) return o;
     var l = lifecycle;
     while (l != null && l is LifecycleRegistry) {
       var owner = l.provider;
       if (owner is LifecycleOwnerStateMixin) {
-        LO? o = owner._delegate._observers.keys.whereType<LO>().firstOrNull;
+        final os = owner._delegate._observers.keys.whereType<LO>();
+        LO? o = os.isEmpty ? null : os.first;
         if (o != null) return o;
       }
       l = l.parent;
@@ -119,6 +121,9 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
+
+  @override
+  Lifecycle get lifecycle => _delegate.lifecycle!;
 
   @override
   void registerLifecycleObserver(LifecycleObserver observer,

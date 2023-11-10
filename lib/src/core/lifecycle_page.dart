@@ -25,27 +25,47 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    var observer = Navigator.of(context)
+    var observers = Navigator.of(context)
         .widget
         .observers
-        .whereType<LifecycleNavigatorObserver>()
-        .firstOrNull;
+        .whereType<LifecycleNavigatorObserver>();
+    final observer = observers.isEmpty ? null : observers.first;
     assert(observer != null, 'Cannot find LifecycleNavigatorObserver');
     if (observer != null) {
       _observer = observer;
-      observer.subscribe(this);
+      observer._subscribe(this);
     }
+
+    final modalRoute = ModalRoute.of(context);
+    // if (modalRoute?.isFirst == true) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => onChange());
+    // }
   }
 
   @override
   void onChange() {
+    if (!mounted) {
+      _observer?._unsubscribe(this);
+      return;
+    }
     final modalRoute = ModalRoute.of(context);
     if (lifecycleRegistry.currentState > LifecycleState.initialized) {
-      lifecycleRegistry.handleLifecycleEvent(modalRoute!.isCurrent
-          ? LifecycleEvent.resume
-          : modalRoute.isActive
-              ? LifecycleEvent.pause
-              : LifecycleEvent.stop);
+      final isCurrent = modalRoute!.isCurrent;
+      final isActive = modalRoute.isActive;
+      if (isCurrent) {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+      } else if (isActive) {
+        final history = _observer!._history;
+        final index = history.indexOf(modalRoute);
+        final pi = history.lastIndexWhere((e) => e is PageRoute);
+        if (index < pi) {
+          lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+        } else {
+          lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+        }
+      } else {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+      }
     }
   }
 }
@@ -65,18 +85,21 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     return _cache.putIfAbsent(tag, () => LifecycleNavigatorObserver._());
   }
 
-  final WeakSet<_RouteChanger> _listeners = WeakSet<_RouteChanger>();
+  final Set<_RouteChanger> _listeners = {};
 
-  void subscribe(_RouteChanger changer) {
+  final List<Route> _history = [];
+
+  void _subscribe(_RouteChanger changer) {
     _listeners.add(changer);
   }
 
-  // void unsubscribe(_RouteChanger changer) {
-  //   // _listeners
-  // }
+  void _unsubscribe(_RouteChanger changer) {
+    _listeners.remove(changer);
+  }
 
   void _notifyChange() {
-    for (var element in _listeners) {
+    final ls = List.from(_listeners);
+    for (var element in ls) {
       element.onChange();
     }
   }
@@ -91,6 +114,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     // _listeners[route]?.toList().forEach((element) {
     //   element.onChange();
     // });
+    _history.remove(route);
     _notifyChange();
   }
 
@@ -105,6 +129,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     //   element.onChange();
     // });
 
+    _history.add(route);
     _notifyChange();
   }
 
@@ -112,6 +137,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   void didRemove(Route route, Route? previousRoute) {
     super.didRemove(route, previousRoute);
 
+    _history.remove(route);
     _notifyChange();
   }
 
@@ -119,6 +145,8 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   void didReplace({Route? newRoute, Route? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
 
+    if (oldRoute != null) _history.remove(oldRoute);
+    if (newRoute != null) _history.add(newRoute);
     _notifyChange();
   }
 }
@@ -129,7 +157,7 @@ class LifecycleRoutePage extends StatefulWidget {
   const LifecycleRoutePage({Key? key, required this.child}) : super(key: key);
 
   @override
-  _LifecycleRoutePageState createState() => _LifecycleRoutePageState();
+  State<LifecycleRoutePage> createState() => _LifecycleRoutePageState();
 }
 
 class _LifecycleRoutePageState extends State<LifecycleRoutePage>
