@@ -15,28 +15,17 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
   @override
   bool get customDispatchEvent => true;
 
-  void _recheckResume(dynamic v) {
-    if (mounted &&
-        lifecycleRegistry.getCurrentState() > LifecycleState.destroyed) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
-    }
-  }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    var observers = Navigator.of(context)
-        .widget
-        .observers
-        .whereType<LifecycleNavigatorObserver>();
-    final observer = observers.isEmpty ? null : observers.first;
-    assert(observer != null, 'Cannot find LifecycleNavigatorObserver');
-    if (observer != null) {
+
+    var observer = LifecycleNavigatorObserver.maybeOf(context);
+    if (observer != _observer) {
       _observer = observer;
-      observer._subscribe(this);
+      observer?._subscribe(this);
     }
 
-    final modalRoute = ModalRoute.of(context);
+    // final modalRoute = ModalRoute.of(context);
     // if (modalRoute?.isFirst == true) {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) => onChange());
     // }
@@ -55,7 +44,7 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
       if (isCurrent) {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
       } else if (isActive) {
-        final history = _observer!._history;
+        final history = LifecycleNavigatorObserver.getHistoryRoute(context);
 
         final find =
             history.lastWhere((e) => e is PageRoute, orElse: () => modalRoute);
@@ -71,66 +60,80 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
   }
 }
 
+Expando<Set<_RouteChanger>> _navigatorRouteChanger =
+    Expando('navigatorRouteChanger');
+
+Expando<List<Route>> _historyRoute = Expando('_historyRoute');
+
+extension _ExpandoGetOrPutExt<T extends Object> on Expando<T> {
+  T getOrPut(Object? key, T Function() defaultValue) {
+    if (key == null) return defaultValue();
+    T? r = this[key];
+    if (r == null) {
+      r = defaultValue();
+      this[key] = r;
+    }
+    return r;
+  }
+}
+
 class LifecycleNavigatorObserver extends NavigatorObserver {
-  static final Map<String, LifecycleNavigatorObserver> _cache = {};
-  static final LifecycleNavigatorObserver _primary =
-      LifecycleNavigatorObserver._();
-
-  LifecycleNavigatorObserver._();
-
-  factory LifecycleNavigatorObserver.primary() {
-    return _primary;
-  }
-
-  factory LifecycleNavigatorObserver(String tag) {
-    return _cache.putIfAbsent(tag, () => LifecycleNavigatorObserver._());
-  }
-
-  final Set<_RouteChanger> _listeners = {};
-
-  final List<Route> _history = [];
+//   static final Map<String, LifecycleNavigatorObserver> _cache = {};
+//   static final LifecycleNavigatorObserver _primary =
+//       LifecycleNavigatorObserver._();
+//
+//   LifecycleNavigatorObserver._();
+//
+//   factory LifecycleNavigatorObserver.primary() {
+//     return _primary;
+//   }
+//
+//   factory LifecycleNavigatorObserver(String tag) {
+//     return _cache.putIfAbsent(tag, () => LifecycleNavigatorObserver._());
+//   }
 
   void _subscribe(_RouteChanger changer) {
-    _listeners.add(changer);
+    final nav = navigator;
+    if (nav != null) {
+      var listeners = _navigatorRouteChanger[nav];
+      if (listeners == null) {
+        listeners = <_RouteChanger>{};
+        _navigatorRouteChanger[nav] = listeners;
+      }
+      listeners.add(changer);
+    }
   }
 
   void _unsubscribe(_RouteChanger changer) {
-    _listeners.remove(changer);
+    final nav = navigator;
+    if (nav != null) {
+      _navigatorRouteChanger[nav]?.remove(changer);
+    }
   }
 
   void _notifyChange() {
-    final ls = List.from(_listeners);
-    for (var element in ls) {
-      element.onChange();
+    final nav = navigator;
+    if (nav != null) {
+      final listeners = _navigatorRouteChanger[nav];
+      if (listeners != null && listeners.isNotEmpty) {
+        final ls = List.from(listeners);
+        for (var element in ls) {
+          element.onChange();
+        }
+      }
     }
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    // if (previousRoute != null) {
-    //   _listeners[previousRoute]?.toList().forEach((element) {
-    //     element.onChange();
-    //   });
-    // }
-    // _listeners[route]?.toList().forEach((element) {
-    //   element.onChange();
-    // });
-    _history.remove(route);
+    if (navigator != null) _historyRoute[navigator!]?.remove(route);
+
     _notifyChange();
   }
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    // if (previousRoute != null) {
-    //   _listeners[previousRoute]?.toList().forEach((element) {
-    //     element.onChange();
-    //   });
-    // }
-    // _listeners[route]?.toList().forEach((element) {
-    //   element.onChange();
-    // });
-
-    _history.add(route);
+    _historyRoute.getOrPut(navigator, () => <Route>[]).add(route);
     _notifyChange();
   }
 
@@ -138,7 +141,8 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   void didRemove(Route route, Route? previousRoute) {
     super.didRemove(route, previousRoute);
 
-    _history.remove(route);
+    if (navigator != null) _historyRoute[navigator!]?.remove(route);
+
     _notifyChange();
   }
 
@@ -146,9 +150,35 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   void didReplace({Route? newRoute, Route? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
 
-    if (oldRoute != null) _history.remove(oldRoute);
-    if (newRoute != null) _history.add(newRoute);
+    if (oldRoute != null && navigator != null) {
+      _historyRoute[navigator!]?.remove(oldRoute);
+    }
+    if (newRoute != null) {
+      _historyRoute.getOrPut(navigator, () => <Route>[]).add(newRoute);
+    }
     _notifyChange();
+  }
+
+  static LifecycleNavigatorObserver? maybeOf(BuildContext context) {
+    var observers = Navigator.of(context)
+        .widget
+        .observers
+        .whereType<LifecycleNavigatorObserver>();
+    final observer = observers.isEmpty ? null : observers.first;
+    return observer;
+  }
+
+  static LifecycleNavigatorObserver of(BuildContext context) {
+    final observer = maybeOf(context);
+    assert(observer != null, 'Cannot find LifecycleNavigatorObserver');
+    return observer!;
+  }
+
+  static List<Route> getHistoryRoute(BuildContext context) {
+    assert(maybeOf(context) != null, 'Cannot find LifecycleNavigatorObserver');
+    final navigator = Navigator.of(context);
+    final history = _historyRoute.getOrPut(navigator, () => <Route>[]);
+    return <Route>[...history];
   }
 }
 
