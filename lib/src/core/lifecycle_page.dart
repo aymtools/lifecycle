@@ -56,12 +56,13 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
       } else if (isActive) {
         final history = _observer!._history;
-        final index = history.indexOf(modalRoute);
-        final pi = history.lastIndexWhere((e) => e is PageRoute);
-        if (index < pi) {
-          lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
-        } else {
+
+        final find =
+            history.lastWhere((e) => e is PageRoute, orElse: () => modalRoute);
+        if (find == modalRoute) {
           lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+        } else {
+          lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
         }
       } else {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);

@@ -61,7 +61,7 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
 
   @override
   void registerLifecycleObserver(LifecycleObserver observer,
-      {LifecycleState? startWith, bool fullCycle = false}) {
+      {LifecycleState? startWith, bool fullCycle = true}) {
     if (_observers.containsKey(observer)) return;
     var os = _ObserverS(startWith ?? LifecycleState.destroyed, fullCycle);
     _observers[observer] = os;
@@ -75,7 +75,7 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
 
   @override
   void removeLifecycleObserver(LifecycleObserver observer,
-      {bool fullCycle = false}) {
+      {bool fullCycle = true}) {
     if (!_observers.containsKey(observer)) return;
     _ObserverS? os = _observers.remove(observer);
     if (os != null) {
@@ -123,17 +123,17 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
 
   @override
-  Lifecycle get lifecycle => _delegate.lifecycle!;
+  Lifecycle? get lifecycle => _delegate.lifecycle;
 
   @override
   void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = false}) =>
+          {LifecycleState? startWith, bool fullCycle = true}) =>
       _delegate.registerLifecycleObserver(observer,
           startWith: startWith, fullCycle: fullCycle);
 
   @override
   void removeLifecycleObserver(LifecycleObserver observer,
-          {bool fullCycle = false}) =>
+          {bool fullCycle = true}) =>
       _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
 
   @override
@@ -159,7 +159,6 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
     super.dispose();
   }
 }
-
 mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
     implements LifecycleOwner, LifecycleObserverRegisterMixin<T> {
   late final LifecycleRegistry _lifecycle = LifecycleRegistry(this);
@@ -183,13 +182,13 @@ mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
 
   @override
   void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = false}) =>
+          {LifecycleState? startWith, bool fullCycle = true}) =>
       _delegate.registerLifecycleObserver(observer,
           startWith: startWith, fullCycle: fullCycle);
 
   @override
   void removeLifecycleObserver(LifecycleObserver observer,
-          {bool fullCycle = false}) =>
+          {bool fullCycle = true}) =>
       _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
 
   @override
