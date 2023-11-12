@@ -1,5 +1,3 @@
- import 'dart:ui';
-
 import 'package:flutter/widgets.dart';
 
 import 'lifecycle.dart';
@@ -11,7 +9,7 @@ class LifecycleApp extends StatefulWidget {
   const LifecycleApp({Key? key, required this.child}) : super(key: key);
 
   @override
-  _LifecycleAppState createState() => _LifecycleAppState();
+  State<LifecycleApp> createState() => _LifecycleAppState();
 }
 
 class _LifecycleAppState extends State<LifecycleApp>
@@ -22,67 +20,45 @@ class _LifecycleAppState extends State<LifecycleApp>
   }
 }
 
-mixin LifecycleAppState<T extends StatefulWidget> on LifecycleOwnerStateMixin<T>
-    implements WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
+class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
+  final LifecycleRegistry _lifecycleRegistry;
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  _NativeAppLifecycleStateObserver(this._lifecycleRegistry);
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.inactive:
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
         break;
       case AppLifecycleState.resumed:
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
         break;
       case AppLifecycleState.paused:
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
         break;
       case AppLifecycleState.detached:
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.destroy);
+        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.destroy);
         break;
     }
   }
+}
+
+mixin LifecycleAppState<T extends StatefulWidget>
+    on LifecycleOwnerStateMixin<T> {
+  late _NativeAppLifecycleStateObserver _nativeAppLifecycleStateObserver;
 
   @override
-  void didChangeAccessibilityFeatures() {}
+  void initState() {
+    super.initState();
+    _nativeAppLifecycleStateObserver =
+        _NativeAppLifecycleStateObserver(lifecycleRegistry);
+    WidgetsBinding.instance.addObserver(_nativeAppLifecycleStateObserver);
+  }
 
   @override
-  void didChangeLocales(List<Locale>? locale) {}
-
-  @override
-  void didChangeMetrics() {}
-
-  @override
-  void didChangePlatformBrightness() {}
-
-  @override
-  void didChangeTextScaleFactor() {}
-
-  @override
-  void didHaveMemoryPressure() {}
-
-  @override
-  Future<bool> didPopRoute() => Future<bool>.value(false);
-
-  @override
-  Future<bool> didPushRoute(String route) => Future<bool>.value(false);
-
-  @override
-  Future<bool> didPushRouteInformation(RouteInformation routeInformation) =>
-      didPushRoute(routeInformation.location!);
-
-  Future<AppExitResponse> didRequestAppExit() {
-    return Future.value(AppExitResponse.exit);
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(_nativeAppLifecycleStateObserver);
+    super.dispose();
   }
 }
