@@ -225,9 +225,9 @@ mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
     Lifecycle? parentLifecycle =
         context.findAncestorStateOfType<LifecycleOwnerStateMixin>()?.lifecycle;
     lifecycleRegistry.bindParentLifecycle(parentLifecycle);
-    lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
     _isInactivate = true;
     if (!customDispatchEvent) {
+      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
       WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
     }
   }

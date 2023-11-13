@@ -1,13 +1,57 @@
-将flutter中state相关的生命周期转换为与widget无关，使用方式同androidx中的lifecycle
+AnLifecycle draws on lifecycle in androidx to implement lifecycle on Flutter.
+Developers can sense the LifecycleState under the current context wherever you need it.
 
-## Features
+## Describe
+```dart
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+enum LifecycleEvent {
+  /// Constant for create event of the LifecycleOwner.
+  create,
 
-## Getting started
+  /// Constant for start event of the LifecycleOwner.
+  start,
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+  /// Constant for resume event of the LifecycleOwner.
+  resume,
+
+  /// Constant for pause event of the LifecycleOwner.
+  pause,
+
+  /// Constant for stop event of the LifecycleOwner.
+  stop,
+
+  /// Constant for destroy event of the LifecycleOwner.
+  destroy,
+}
+
+/// Lifecycle states.
+enum LifecycleState {
+  /// Destroyed state for a LifecycleOwner. After this event, this Lifecycle will not dispatch any more events.
+  /// this state is reached right before [LifecycleEvent.destroy] call.   [State.dispose]
+  destroyed,
+
+  ///Initialized state for a LifecycleOwner.
+  /// this is the state when it is constructed but has not received [LifecycleEvent.create] yet.
+  initialized,
+
+  /// Created state for a LifecycleOwner.
+  /// this state is reached in two cases:
+  /// after [LifecycleEvent.create] call;  [State.initState]
+  /// right before [LifecycleEvent.stop] call. [State.deactivate]
+  created,
+
+  /// Started state for a LifecycleOwner.
+  /// this state is reached in two cases:
+  /// after [LifecycleEvent.start] call;  fist [State.didChangeDependencies]
+  /// right before [LifecycleEvent.pause] call.  Overridden non-Page routes, such as dialog
+  started,
+
+  /// Resumed state for a LifecycleOwner. 
+  /// this state is reached after  [LifecycleEvent.resume] is called. Route.isCurrent
+  resumed,
+}
+
+```
 
 ## Usage
 
@@ -15,11 +59,14 @@ TODO: Include short and useful examples for package users. Add longer examples
 to `/example` folder.
 
 ```dart
+
 const like = 'sample';
 ```
 
-## Additional information
+See [example](https://github.com/aymtools/lifecycle/blob/master/example/) for detailed test
+case.
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+## Issues
+
+If you encounter issues, here are some tips for debug, if nothing helps report
+to [issue tracker on GitHub](https://github.com/aymtools/lifecycle/issues):
