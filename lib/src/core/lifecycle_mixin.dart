@@ -20,8 +20,8 @@ abstract class LifecycleObserverRegister {
   void registerLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? startWith, bool fullCycle = false});
 
-  void removeLifecycleObserver(LifecycleObserver observer,
-      {bool fullCycle = false});
+  //移除Observer [fullCycle] 不为空时覆盖注册时的配置
+  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle});
 
   LO? findLifecycleObserver<LO extends LifecycleObserver>();
 }
@@ -74,14 +74,13 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
   }
 
   @override
-  void removeLifecycleObserver(LifecycleObserver observer,
-      {bool fullCycle = true}) {
+  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) {
     if (!_observers.containsKey(observer)) return;
     _ObserverS? os = _observers.remove(observer);
     if (os != null) {
       os.lifecycle?.removeObserver(
           observer,
-          fullCycle == true || (os.fullCycle)
+          fullCycle == true || (fullCycle == null && os.fullCycle)
               ? LifecycleState.destroyed
               : null);
     }
@@ -132,8 +131,7 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
           startWith: startWith, fullCycle: fullCycle);
 
   @override
-  void removeLifecycleObserver(LifecycleObserver observer,
-          {bool fullCycle = true}) =>
+  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
       _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
 
   @override
@@ -187,8 +185,7 @@ mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
           startWith: startWith, fullCycle: fullCycle);
 
   @override
-  void removeLifecycleObserver(LifecycleObserver observer,
-          {bool fullCycle = true}) =>
+  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
       _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
 
   @override
