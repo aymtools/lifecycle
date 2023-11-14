@@ -147,7 +147,7 @@ class _FistPageState extends State<FistPage>
 
 ```
 
-See [example](https://github.com/aymtools/lifecycle/blob/master/example/) for detailed test
+See [example](https://github.com/aymtools/lifecycle/blob/main/example/) for detailed test
 case.
 
 ## Issues
