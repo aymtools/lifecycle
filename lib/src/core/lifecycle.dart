@@ -196,7 +196,7 @@ class LifecycleRegistry extends Lifecycle {
     if (_lastState == next) {
       return;
     }
-    _observers.values.toList().reversed.forEach((observer) {
+    _observers.values.toList().forEach((observer) {
       _moveState(observer, next);
     });
     _lastState = next;

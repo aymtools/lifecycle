@@ -21,6 +21,9 @@ class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
   int? _lastSelectIndex;
   PageController? _controller;
 
+  @override
+  bool get customDispatchEvent => true;
+
   void _changeListener() {
     _pageSelectedDispatchEvent();
   }
@@ -133,20 +136,20 @@ class LifecyclePageView extends PageView {
           return LifecyclePageViewItem(index: index, child: c);
         });
 
-  // LifecyclePageView.custom({
-  //   super.key,
-  //   super.scrollDirection = Axis.horizontal,
-  //   super.reverse = false,
-  //   super.controller,
-  //   super.physics,
-  //   super.pageSnapping = true,
-  //   super.onPageChanged,
-  //   required super.childrenDelegate,
-  //   super.dragStartBehavior = DragStartBehavior.start,
-  //   super.allowImplicitScrolling = false,
-  //   super.restorationId,
-  //   super.clipBehavior = Clip.hardEdge,
-  //   super.scrollBehavior,
-  //   super.padEnds = true,
-  // }) : super.custom();
+// LifecyclePageView.custom({
+//   super.key,
+//   super.scrollDirection = Axis.horizontal,
+//   super.reverse = false,
+//   super.controller,
+//   super.physics,
+//   super.pageSnapping = true,
+//   super.onPageChanged,
+//   required super.childrenDelegate,
+//   super.dragStartBehavior = DragStartBehavior.start,
+//   super.allowImplicitScrolling = false,
+//   super.restorationId,
+//   super.clipBehavior = Clip.hardEdge,
+//   super.scrollBehavior,
+//   super.padEnds = true,
+// }) : super.custom();
 }

@@ -2,6 +2,7 @@ AnLifecycle draws on lifecycle in androidx to implement lifecycle on Flutter.
 Developers can sense the LifecycleState under the current context wherever you need it.
 
 ## Describe
+
 ```dart
 
 enum LifecycleEvent {
@@ -55,12 +56,95 @@ enum LifecycleState {
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+#### 1.1 Use LifecycleApp to wrap the default App to receive native related life cycles
 
 ```dart
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-const like = 'sample';
+  @override
+  Widget build(BuildContext context) {
+    // Use LifecycleApp to wrap the default App
+    return LifecycleApp(
+      child: MaterialApp(),
+    );
+  }
+}
+```
+
+#### 1.2 Use LifecycleNavigatorObserver to register routing event changes, and use LifecycleRoutePage to wrap PageContent Widget to distribute life cycle events.
+
+```dart
+ class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return LifecycleApp(
+      child: MaterialApp(
+        title: 'LifecycleApp Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        //Use LifecycleNavigatorObserver to register routing event changes
+        navigatorObservers: [LifecycleNavigatorObserver()],
+        routes: routes.map(
+              (key, value) =>
+              MapEntry(
+                  key, (_) =>
+              //Use LifecycleRoutePage to wrap PageContent Widget to distribute life cycle events.//Use LifecycleRoutePage to wrap PageContent Widget to distribute life cycle events.
+              LifecycleRoutePage(child: Builder(
+                  builder: value))),
+        ),
+      ),
+    );
+  }
+}
+```
+
+#### 1.3 Take advantage of the full lifecycle states and lifecycle events
+
+```dart
+mixin LifecycleEventPrinter<W extends StatefulWidget>
+on LifecycleObserverRegisterMixin<W> {
+  String get otherTag => '';
+
+  @override
+  void initState() {
+    super.initState();
+    final printer = LifecycleObserver.eventAny((event) {
+      print('LifecycleEventPrinter $runtimeType $otherTag $event');
+    });
+    registerLifecycleObserver(printer);
+  }
+}
+
+
+mixin LifecycleStatePrinter<W extends StatefulWidget>
+on LifecycleObserverRegisterMixin<W> {
+  String get otherTag => '';
+
+  @override
+  void initState() {
+    super.initState();
+    final printer = LifecycleObserver.stateChange((state) {
+      print('LifecycleStatePrinter $runtimeType $otherTag $state');
+    });
+    registerLifecycleObserver(printer);
+  }
+}
+
+class FistPage extends StatefulWidget {
+  const FistPage({super.key});
+
+  @override
+  State<FistPage> createState() => _FistPageState();
+}
+
+class _FistPageState extends State<FistPage>
+    with LifecycleObserverRegisterMixin, LifecycleEventPrinter {
+}
+
 ```
 
 See [example](https://github.com/aymtools/lifecycle/blob/master/example/) for detailed test
