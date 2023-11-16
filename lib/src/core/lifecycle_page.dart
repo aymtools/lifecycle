@@ -5,7 +5,7 @@ import 'lifecycle.dart';
 import 'lifecycle_mixin.dart';
 
 abstract class _RouteChanger {
-  void onChange();
+  void onChange(bool Function(Route route) checkVisible);
 }
 
 mixin LifecycleRoutePageState<T extends StatefulWidget>
@@ -25,14 +25,19 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
       observer?._subscribe(this);
     }
 
-    // final modalRoute = ModalRoute.of(context);
+    // final modalRoute = ModalRoute.of(context)!;
     // if (modalRoute?.isFirst == true) {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => onChange());
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if (_observer?.navigator != null) {
+        onChange(_observer!.checkVisible);
+        // observer!.checkVisible(modalRoute);
+      }
+    });
     // }
   }
 
   @override
-  void onChange() {
+  void onChange(bool Function(Route route) checkVisible) {
     if (!mounted) {
       _observer?._unsubscribe(this);
       return;
@@ -44,15 +49,20 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
       if (isCurrent) {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
       } else if (isActive) {
-        final history = LifecycleNavigatorObserver.getHistoryRoute(context);
-
-        final find =
-            history.lastWhere((e) => e is PageRoute, orElse: () => modalRoute);
-        if (find == modalRoute) {
+        if (checkVisible(modalRoute)) {
           lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
         } else {
           lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
         }
+        // final history = LifecycleNavigatorObserver.getHistoryRoute(context);
+        //
+        // final find =
+        //     history.lastWhere((e) => e is PageRoute, orElse: () => modalRoute);
+        // if (find == modalRoute) {
+        //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+        // } else {
+        //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+        // }
       } else {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
       }
@@ -114,11 +124,23 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   void _notifyChange() {
     final nav = navigator;
     if (nav != null) {
+      final history = _historyRoute[nav];
+      final vRoute = <Route>[];
+      if (history != null && history.isNotEmpty) {
+        final rHistory = history.reversed;
+        for (var element in rHistory) {
+          vRoute.add(element);
+          if (element is PageRoute) {
+            break;
+          }
+        }
+      }
+
       final listeners = _navigatorRouteChanger[nav];
       if (listeners != null && listeners.isNotEmpty) {
-        final ls = List.from(listeners);
+        final ls = List<_RouteChanger>.from(listeners);
         for (var element in ls) {
-          element.onChange();
+          element.onChange(vRoute.contains);
         }
       }
     }
@@ -179,6 +201,22 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     final navigator = Navigator.of(context);
     final history = _historyRoute.getOrPut(navigator, () => <Route>[]);
     return <Route>[...history];
+  }
+
+  bool checkVisible(Route route) {
+    final nav = navigator;
+    if (nav == null) return false;
+    final history = _historyRoute[nav];
+    if (history == null || history.isEmpty) return false;
+
+    final rHistory = history.reversed;
+    for (var element in rHistory) {
+      if (element == route) return true;
+      if (element is PageRoute) {
+        break;
+      }
+    }
+    return false;
   }
 }
 
