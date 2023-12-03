@@ -37,6 +37,13 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
   }
 
   @override
+  void dispose() {
+    _observer?._unsubscribe(this);
+    super.dispose();
+    _observer = null;
+  }
+
+  @override
   void onChange(bool Function(Route route) checkVisible) {
     if (!mounted) {
       _observer?._unsubscribe(this);
@@ -88,20 +95,6 @@ extension _ExpandoGetOrPutExt<T extends Object> on Expando<T> {
 }
 
 class LifecycleNavigatorObserver extends NavigatorObserver {
-//   static final Map<String, LifecycleNavigatorObserver> _cache = {};
-//   static final LifecycleNavigatorObserver _primary =
-//       LifecycleNavigatorObserver._();
-//
-//   LifecycleNavigatorObserver._();
-//
-//   factory LifecycleNavigatorObserver.primary() {
-//     return _primary;
-//   }
-//
-//   factory LifecycleNavigatorObserver(String tag) {
-//     return _cache.putIfAbsent(tag, () => LifecycleNavigatorObserver._());
-//   }
-
   void _subscribe(_RouteChanger changer) {
     final nav = navigator;
     if (nav != null) {
