@@ -173,6 +173,8 @@ mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
 
   bool _isInactivate = false;
 
+  bool _isFirstStart = true;
+
   bool get customDispatchEvent => false;
 
   @override
@@ -226,11 +228,16 @@ mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
     if (!customDispatchEvent) {
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
       WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
+    } else if (_isFirstStart) {
+      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
     }
+    _isFirstStart = false;
   }
 
   void _defDispatchResume(_) {
-    if (_isInactivate && !customDispatchEvent) {
+    if (_isInactivate &&
+        !customDispatchEvent &&
+        currentLifecycleState > LifecycleState.destroyed) {
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
     }
   }
