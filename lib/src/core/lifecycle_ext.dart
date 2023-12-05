@@ -28,7 +28,7 @@ mixin LifecycleEventDefaultObserver implements LifecycleEventObserver {
 
 class LifecycleEventObserverStream with LifecycleEventDefaultObserver {
   late final StreamController<LifecycleEvent> _controller =
-      StreamController<LifecycleEvent>();
+      StreamController<LifecycleEvent>(sync: true);
   late final Stream<LifecycleEvent> _eventStream =
       _controller.stream.asBroadcastStream();
 
@@ -54,7 +54,7 @@ class LifecycleEventObserverStream with LifecycleEventDefaultObserver {
 
 class LifecycleStateObserverStream implements LifecycleStateChangeObserver {
   final StreamController<LifecycleState> _controller =
-      StreamController<LifecycleState>();
+      StreamController<LifecycleState>(sync: true);
 
   late final Stream<LifecycleState> _stateStream =
       _controller.stream.asBroadcastStream();

@@ -44,16 +44,18 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
       LifecycleState? currState;
       if (_lifecycle != null) {
         currState = _lifecycle!.currentState;
-        for (var obs in _observers.entries) {
+        final entries = [..._observers.entries];
+        for (var obs in entries) {
           _lifecycle!.removeObserver(obs.key);
           obs.value.lifecycle = null;
         }
       }
       _lifecycle = owner?.lifecycle;
       if (_lifecycle != null) {
-        for (var obs in _observers.entries) {
-          _lifecycle!.addObserver(obs.key, currState ?? obs.value.startWith);
+        final entries = [..._observers.entries];
+        for (var obs in entries) {
           obs.value.lifecycle = _lifecycle;
+          _lifecycle!.addObserver(obs.key, currState ?? obs.value.startWith);
         }
       }
     }
@@ -84,11 +86,13 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
               ? LifecycleState.destroyed
               : null);
     }
+    os?.lifecycle = null;
   }
 
   void dispose() {
     _currState = LifecycleState.destroyed;
-    for (var e in _observers.entries) {
+    final entries = [..._observers.entries];
+    for (var e in entries) {
       e.value.lifecycle?.removeObserver(
           e.key, e.value.fullCycle == true ? LifecycleState.destroyed : null);
     }
