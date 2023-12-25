@@ -47,9 +47,9 @@ class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
     } else {
       final viewportFraction = controller.viewportFraction;
-      if (viewportFraction >= 1 ||
-          currentSelectIndex < (widget.index - 1) ||
-          currentSelectIndex > (widget.index + 1)) {
+      final x = viewportFraction >= 1 ? 0 : (1 / viewportFraction).floor();
+      if (currentSelectIndex < (widget.index - x) ||
+          currentSelectIndex > (widget.index + x)) {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
       } else {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
@@ -123,18 +123,22 @@ class LifecyclePageView extends PageView {
     super.onPageChanged,
     required NullableIndexedWidgetBuilder itemBuilder,
     super.findChildIndexCallback,
-    super.itemCount,
+    required int itemCount,
     super.dragStartBehavior = DragStartBehavior.start,
     super.allowImplicitScrolling = false,
     super.restorationId,
     super.clipBehavior = Clip.hardEdge,
     super.scrollBehavior,
     super.padEnds = true,
-  }) : super.builder(itemBuilder: (context, index) {
-          final c = itemBuilder(context, index);
-          if (c == null) return null;
-          return LifecyclePageViewItem(index: index, child: c);
-        });
+  }) : super.builder(
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index >= itemCount) return null;
+              return LifecyclePageViewItem(
+                  index: index,
+                  child: Builder(
+                      builder: (context) => itemBuilder(context, index)!));
+            });
 
 // LifecyclePageView.custom({
 //   super.key,
@@ -152,4 +156,16 @@ class LifecyclePageView extends PageView {
 //   super.scrollBehavior,
 //   super.padEnds = true,
 // }) : super.custom();
+}
+
+class LifecycleTabBarView extends TabBarView {
+  LifecycleTabBarView({
+    super.key,
+    List<Widget> children = const <Widget>[],
+    super.controller,
+    super.physics,
+    super.dragStartBehavior = DragStartBehavior.start,
+    super.viewportFraction = 1.0,
+    super.clipBehavior = Clip.hardEdge,
+  }) : super(children: _childrenLifecycle(children));
 }

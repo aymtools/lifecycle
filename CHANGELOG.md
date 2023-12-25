@@ -14,3 +14,7 @@
 
 * 修正EventStream和StateStream为同步调用的stream
 * 修正Register无法添加后立即移除的异常
+
+## 1.0.4
+
+* 修正pageviewItem的存在缩放时的判断
