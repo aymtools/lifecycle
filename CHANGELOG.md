@@ -18,3 +18,4 @@
 ## 1.0.4
 
 * 修正pageviewItem的存在缩放时的判断
+* 修正routepage的透明判断
