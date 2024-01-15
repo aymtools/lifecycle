@@ -11,7 +11,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     final nav = navigator;
     if (nav != null) {
       var listeners =
-      _navigatorRouteChanger.getOrPut(nav, () => <_RouteChanger>{});
+          _navigatorRouteChanger.getOrPut(nav, () => <_RouteChanger>{});
       listeners.add(changer);
     }
   }
@@ -84,8 +84,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   }
 
   static LifecycleNavigatorObserver? maybeOf(BuildContext context) {
-    var observers = Navigator
-        .of(context)
+    var observers = Navigator.of(context)
         .widget
         .observers
         .whereType<LifecycleNavigatorObserver>();
@@ -115,7 +114,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     final rHistory = history.reversed;
     for (var element in rHistory) {
       if (element == route) return true;
-      if (element is PageRoute) {
+      if (element is PageRoute && element.opaque == true) {
         break;
       }
     }
