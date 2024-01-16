@@ -45,6 +45,7 @@ mixin LifecycleRoutePageState<T extends StatefulWidget>
       _observer?._unsubscribe(this);
       return;
     }
+    if (_observer == null) return;
     final modalRoute = ModalRoute.of(context);
     if (lifecycleRegistry.currentState > LifecycleState.initialized) {
       final isCurrent = modalRoute!.isCurrent;

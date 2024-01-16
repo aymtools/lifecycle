@@ -1,3 +1,7 @@
+## 1.0.5
+
+* 修正dispose与!mounted的状态不一致的bug，引起的page的state异常
+
 ## 1.0.4
 
 * 修正pageviewItem的存在缩放时的判断
