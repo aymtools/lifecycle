@@ -7,6 +7,8 @@ import 'lifecycle_mixin.dart';
 part 'lifecycle_page_route.dart';
 
 class LifecycleNavigatorObserver extends NavigatorObserver {
+  final List<Route> _visibleRoutes = [];
+
   void _subscribe(_RouteChanger changer) {
     final nav = navigator;
     if (nav != null) {
@@ -24,6 +26,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   }
 
   void _notifyChange() {
+    _visibleRoutes.clear();
     final nav = navigator;
     if (nav != null) {
       final history = _historyRoute[nav];
@@ -37,6 +40,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
           }
         }
       }
+      _visibleRoutes.addAll(vRoute);
 
       final listeners = _navigatorRouteChanger[nav];
       if (listeners != null && listeners.isNotEmpty) {
@@ -106,6 +110,10 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   }
 
   bool checkVisible(Route route) {
+    if (_visibleRoutes.isNotEmpty && route.navigator == navigator) {
+      return _visibleRoutes.contains(route);
+    }
+
     final nav = navigator ?? route.navigator;
     if (nav == null) return false;
     final history = _historyRoute[nav];
