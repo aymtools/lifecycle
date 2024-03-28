@@ -1,4 +1,4 @@
-name: an_lifecycle
+name: anlifecycle
 description: AnLifecycle draws on lifecycle in androidx to implement lifecycle on Flutter.
 version: 2.0.0-pre
 homepage: https://github.com/aymtools/lifecycle/

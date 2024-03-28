@@ -1,6 +1,5 @@
 ## 2.0.0
 
-* 变更package为an_lifecycle
 * lifecycle的提供者使用InheritedWidget来保证变更的及时通知
 
 ## 1.0.5

@@ -1,4 +1,4 @@
-import 'package:an_lifecycle/an_lifecycle.dart';
+import 'package:anlifecycle/lifecycle.dart';
 import 'package:flutter/material.dart';
 
 import 'first.dart';
