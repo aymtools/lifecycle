@@ -7,7 +7,11 @@ import 'lifecycle_mixin.dart';
 part 'lifecycle_page_route.dart';
 
 class LifecycleNavigatorObserver extends NavigatorObserver {
+  final bool useHooked;
+
   final List<Route> _visibleRoutes = [];
+
+  LifecycleNavigatorObserver({this.useHooked = false});
 
   void _subscribe(_RouteChanger changer) {
     final nav = navigator;
@@ -130,13 +134,15 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   }
 }
 
-class LifecycleRoutePage extends StatefulWidget {
-  final Widget child;
+class LifecycleRoutePage extends LifecycleOwnerWidget {
+  final Route route;
 
-  const LifecycleRoutePage({Key? key, required this.child}) : super(key: key);
+  const LifecycleRoutePage(
+      {required this.route, super.key, required super.child});
 
   @override
-  State<LifecycleRoutePage> createState() => _LifecycleRoutePageState();
+  LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
+      _LifecycleRoutePageState();
 }
 
 class _LifecycleRoutePageState extends State<LifecycleRoutePage>
@@ -150,6 +156,6 @@ class _LifecycleRoutePageState extends State<LifecycleRoutePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return widget.child;
+    return buildReturn;
   }
 }

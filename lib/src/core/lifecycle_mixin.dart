@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import 'lifecycle.dart';
 
+part 'lifecycle_provider.dart';
+
 class _ObserverS {
   final LifecycleState startWith;
   final bool fullCycle;
@@ -159,90 +161,5 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
   void dispose() {
     _delegate.dispose();
     super.dispose();
-  }
-}
-mixin LifecycleOwnerStateMixin<T extends StatefulWidget> on State<T>
-    implements LifecycleOwner, LifecycleObserverRegisterMixin<T> {
-  late final LifecycleRegistry _lifecycle = LifecycleRegistry(this);
-
-  @override
-  late final _LifecycleObserverRegisterDelegate _delegate =
-      _LifecycleObserverRegisterDelegate()..lifecycleOwner = this;
-
-  @override
-  Lifecycle get lifecycle => _lifecycle;
-
-  @protected
-  LifecycleRegistry get lifecycleRegistry => _lifecycle;
-
-  bool _isInactivate = false;
-
-  bool _isFirstStart = true;
-
-  bool get customDispatchEvent => false;
-
-  @override
-  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
-
-  @override
-  void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = true}) =>
-      _delegate.registerLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle);
-
-  @override
-  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
-      _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
-
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
-      _delegate.findLifecycleObserver<LO>();
-
-  @override
-  void initState() {
-    super.initState();
-    lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.create);
-  }
-
-  @override
-  void dispose() {
-    lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.destroy);
-    _delegate.dispose();
-    super.dispose();
-    lifecycleRegistry.clearObserver();
-  }
-
-  @override
-  void deactivate() {
-    _isInactivate = false;
-    if (customDispatchEvent) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
-    }
-    super.deactivate();
-    lifecycleRegistry.bindParentLifecycle(null);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    Lifecycle? parentLifecycle =
-        context.findAncestorStateOfType<LifecycleOwnerStateMixin>()?.lifecycle;
-    lifecycleRegistry.bindParentLifecycle(parentLifecycle);
-    _isInactivate = true;
-    if (!customDispatchEvent) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
-      WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
-    } else if (_isFirstStart) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
-    }
-    _isFirstStart = false;
-  }
-
-  void _defDispatchResume(_) {
-    if (_isInactivate &&
-        !customDispatchEvent &&
-        currentLifecycleState > LifecycleState.destroyed) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
-    }
   }
 }

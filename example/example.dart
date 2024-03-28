@@ -1,4 +1,4 @@
-import 'package:anlifecycle/anlifecycle.dart';
+import 'package:an_lifecycle/an_lifecycle.dart';
 import 'package:flutter/material.dart';
 
 import 'first.dart';
@@ -31,7 +31,10 @@ class MyApp extends StatelessWidget {
         navigatorObservers: [LifecycleNavigatorObserver()],
         routes: routes.map(
           (key, value) => MapEntry(
-              key, (_) => LifecycleRoutePage(child: Builder(builder: value))),
+              key,
+              (context) => LifecycleRoutePage(
+                  route: ModalRoute.of(context)!,
+                  child: Builder(builder: value))),
         ),
       ),
     );

@@ -1,4 +1,4 @@
-import 'package:anlifecycle/anlifecycle.dart';
+import 'package:an_lifecycle/an_lifecycle.dart';
 import 'package:flutter/widgets.dart';
 
 mixin LifecycleEventPrinter<W extends StatefulWidget>

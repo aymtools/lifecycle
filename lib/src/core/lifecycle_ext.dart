@@ -102,7 +102,7 @@ class _LifecycleRegisterToObserver<LO extends LifecycleOwner>
           return; //在路径上
         }
         t = t?.parent;
-      } while (t == null);
+      } while (t != null);
     }
     LifecycleOwner? find = owner._findOwner<LO>();
     var start = _target?.currentState ?? LifecycleState.destroyed;

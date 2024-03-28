@@ -4,16 +4,15 @@ import 'package:flutter/material.dart';
 import 'lifecycle.dart';
 import 'lifecycle_mixin.dart';
 
-class LifecyclePageViewItem extends StatefulWidget {
-  // final PageController controller;
+class LifecyclePageViewItem extends LifecycleOwnerWidget {
   final int index;
-  final Widget child;
 
   const LifecyclePageViewItem(
-      {super.key, required this.index, required this.child});
+      {required this.index, super.key, required super.child});
 
   @override
-  State<LifecyclePageViewItem> createState() => _LifecyclePageViewItemState();
+  LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
+      _LifecyclePageViewItemState();
 }
 
 class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
@@ -77,11 +76,6 @@ class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
   void dispose() {
     _controller?.removeListener(_changeListener);
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }
 

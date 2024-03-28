@@ -3,22 +3,15 @@ import 'package:flutter/widgets.dart';
 import 'lifecycle.dart';
 import 'lifecycle_mixin.dart';
 
-class LifecycleApp extends StatefulWidget {
-  final Widget child;
-
-  const LifecycleApp({Key? key, required this.child}) : super(key: key);
+class LifecycleApp extends LifecycleOwnerWidget {
+  const LifecycleApp({super.key, required super.child});
 
   @override
-  State<LifecycleApp> createState() => _LifecycleAppState();
+  LifecycleOwnerStateMixin<LifecycleApp> createState() => _LifecycleAppState();
 }
 
 class _LifecycleAppState extends State<LifecycleApp>
-    with LifecycleOwnerStateMixin, LifecycleAppState {
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
-  }
-}
+    with LifecycleOwnerStateMixin, LifecycleAppState {}
 
 class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
   final LifecycleRegistry _lifecycleRegistry;
@@ -44,7 +37,7 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
   }
 }
 
-mixin LifecycleAppState<T extends StatefulWidget>
+mixin LifecycleAppState<T extends LifecycleOwnerWidget>
     on LifecycleOwnerStateMixin<T> {
   late _NativeAppLifecycleStateObserver _nativeAppLifecycleStateObserver;
 

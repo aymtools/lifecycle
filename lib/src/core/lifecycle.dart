@@ -117,15 +117,14 @@ class LifecycleRegistry extends Lifecycle {
   //上次移动状态后的记录
   LifecycleState _lastState = LifecycleState.initialized;
 
-  late _LifecycleParentStateChangeObserver _maxStateChangeObserver;
+  late final _LifecycleParentStateChangeObserver _maxStateChangeObserver =
+      _LifecycleParentStateChangeObserver(
+          this, (owner, state) => _handleMaxLifecycleStateChange(state));
 
   final LinkedHashMap<LifecycleObserver, _ObserverDispatcher> _observers =
       LinkedHashMap<LifecycleObserver, _ObserverDispatcher>();
 
-  LifecycleRegistry(this.provider) {
-    _maxStateChangeObserver = _LifecycleParentStateChangeObserver(
-        this, (owner, state) => _handleMaxLifecycleStateChange(state));
-  }
+  LifecycleRegistry(this.provider);
 
   @override
   void addObserver(LifecycleObserver observer, [LifecycleState? startWith]) {
@@ -157,6 +156,8 @@ class LifecycleRegistry extends Lifecycle {
   }
 
   void clearObserver() => _observers.clear();
+
+  Set<LifecycleObserver> get observers => _observers.keys.toSet();
 
   @override
   LifecycleState get currentState => getCurrentState();

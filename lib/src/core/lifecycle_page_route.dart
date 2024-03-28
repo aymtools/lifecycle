@@ -4,7 +4,7 @@ abstract class _RouteChanger {
   void onChange(bool Function(Route route) checkVisible);
 }
 
-mixin LifecycleRoutePageState<T extends StatefulWidget>
+mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
     on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   LifecycleNavigatorObserver? _observer;
 

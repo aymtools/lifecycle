@@ -1,4 +1,4 @@
-import 'package:anlifecycle/anlifecycle.dart';
+import 'package:an_lifecycle/an_lifecycle.dart';
 import 'package:flutter/material.dart';
 
 import 'lifecycle_printer.dart';
