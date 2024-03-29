@@ -17,19 +17,16 @@ mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
 
     var observer = LifecycleNavigatorObserver.maybeOf(context);
     if (observer != _observer) {
+      observer?._unsubscribe(this);
       _observer = observer;
       observer?._subscribe(this);
     }
 
-    // final modalRoute = ModalRoute.of(context)!;
-    // if (modalRoute?.isFirst == true) {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (_observer?.navigator != null) {
         onChange(_observer!.checkVisible);
-        // observer!.checkVisible(modalRoute);
       }
     });
-    // }
   }
 
   @override
@@ -46,8 +43,8 @@ mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
       return;
     }
     if (_observer == null) return;
-    final modalRoute = ModalRoute.of(context);
     if (lifecycleRegistry.currentState > LifecycleState.initialized) {
+      final modalRoute = widget.route ?? ModalRoute.of(context);
       final isCurrent = modalRoute!.isCurrent;
       final isActive = modalRoute.isActive;
       if (isCurrent) {
@@ -58,15 +55,6 @@ mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
         } else {
           lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
         }
-        // final history = LifecycleNavigatorObserver.getHistoryRoute(context);
-        //
-        // final find =
-        //     history.lastWhere((e) => e is PageRoute, orElse: () => modalRoute);
-        // if (find == modalRoute) {
-        //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
-        // } else {
-        //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
-        // }
       } else {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
       }

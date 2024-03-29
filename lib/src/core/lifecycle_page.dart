@@ -135,10 +135,9 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
 }
 
 class LifecycleRoutePage extends LifecycleOwnerWidget {
-  final Route route;
+  final Route? route;
 
-  const LifecycleRoutePage(
-      {required this.route, super.key, required super.child});
+  const LifecycleRoutePage({this.route, super.key, required super.child});
 
   @override
   LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
