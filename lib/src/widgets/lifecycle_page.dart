@@ -1,8 +1,7 @@
 import 'package:flutter/widgets.dart';
-// import 'package:weak_collections/weak_collections.dart';
 
-import 'lifecycle.dart';
-import 'lifecycle_mixin.dart';
+import '../core/lifecycle.dart';
+import '../core/lifecycle_register.dart';
 
 part 'lifecycle_page_route.dart';
 

@@ -86,11 +86,11 @@ abstract class LifecycleObserver {
       _ProxyLifecycleEventObserver(eventDestroy: event);
 }
 
-abstract class LifecycleOwner {
+abstract interface class LifecycleOwner {
   Lifecycle get lifecycle;
 }
 
-abstract class Lifecycle {
+abstract base class Lifecycle {
   void addObserver(LifecycleObserver observer, [LifecycleState? startWith]);
 
   void removeObserver(LifecycleObserver observer, [LifecycleState? endWith]);
@@ -100,7 +100,7 @@ abstract class Lifecycle {
   Lifecycle? get parent;
 }
 
-class LifecycleRegistry extends Lifecycle {
+final class LifecycleRegistry extends Lifecycle {
   final LifecycleOwner provider;
 
   Lifecycle? _parentLifecycle;
@@ -168,7 +168,7 @@ class LifecycleRegistry extends Lifecycle {
     if (_parentLifecycle == parent) {
       return;
     }
-    _maxStateChangeObserver.bindParentLifecycle = parent;
+    _maxStateChangeObserver.parentLifecycle = parent;
     _parentLifecycle = parent;
 
     if (_parentLifecycle == null) {
@@ -267,30 +267,31 @@ class LifecycleRegistry extends Lifecycle {
   }
 }
 
-mixin LifecycleEventObserver implements LifecycleObserver {
-  void onCreate(LifecycleOwner owner);
+abstract mixin class LifecycleEventObserver implements LifecycleObserver {
+  void onCreate(LifecycleOwner owner) {}
 
-  void onStart(LifecycleOwner owner);
+  void onStart(LifecycleOwner owner) {}
 
-  void onResume(LifecycleOwner owner);
+  void onResume(LifecycleOwner owner) {}
 
-  void onPause(LifecycleOwner owner);
+  void onPause(LifecycleOwner owner) {}
 
-  void onStop(LifecycleOwner owner);
+  void onStop(LifecycleOwner owner) {}
 
-  void onDestroy(LifecycleOwner owner);
+  void onDestroy(LifecycleOwner owner) {}
 
-  void onAnyEvent(LifecycleOwner owner, LifecycleEvent event);
+  void onAnyEvent(LifecycleOwner owner, LifecycleEvent event) {}
 }
 
-mixin LifecycleStateChangeObserver implements LifecycleObserver {
+abstract mixin class LifecycleStateChangeObserver implements LifecycleObserver {
   void onStateChange(LifecycleOwner owner, LifecycleState state);
 }
 
 typedef _LifecycleStateChangeCallback = void Function(
     LifecycleOwner owner, LifecycleState state);
 
-class _LifecycleParentStateChangeObserver with LifecycleStateChangeObserver {
+class _LifecycleParentStateChangeObserver
+    implements LifecycleStateChangeObserver {
   final Lifecycle childLifecycle;
   final _LifecycleStateChangeCallback callback;
 
@@ -298,7 +299,7 @@ class _LifecycleParentStateChangeObserver with LifecycleStateChangeObserver {
 
   _LifecycleParentStateChangeObserver(this.childLifecycle, this.callback);
 
-  set bindParentLifecycle(Lifecycle? parent) {
+  set parentLifecycle(Lifecycle? parent) {
     if (_parentLifecycle == parent) {
       return;
     }
@@ -358,13 +359,13 @@ class _StateObserverDispatcher extends _ObserverDispatcher {
   final _EventObserverDispatcher? _eventObserver;
 
   _StateObserverDispatcher(
-      LifecycleState state, LifecycleStateChangeObserver observer)
+      super.state, LifecycleStateChangeObserver observer)
       : _observer = observer,
         _eventObserver = observer is LifecycleEventObserver
             ? _EventObserverDispatcher(
                 state, observer as LifecycleEventObserver)
             : null,
-        super._(state);
+        super._();
 
   @override
   set _state(LifecycleState state) {
@@ -383,9 +384,9 @@ class _EventObserverDispatcher extends _ObserverDispatcher {
   final LifecycleEventObserver _observer;
 
   _EventObserverDispatcher(
-      LifecycleState state, LifecycleEventObserver observer)
+      super.state, LifecycleEventObserver observer)
       : _observer = observer,
-        super._(state);
+        super._();
 
   void _dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
     switch (event) {

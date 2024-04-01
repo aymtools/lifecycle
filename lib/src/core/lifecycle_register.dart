@@ -41,8 +41,8 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
   LifecycleState get currentLifecycleState =>
       _lifecycle?.currentState ?? _currState;
 
-  set lifecycleOwner(LifecycleOwner? owner) {
-    if (owner?.lifecycle != _lifecycle) {
+  set lifecycle(Lifecycle? lifecycle) {
+    if (lifecycle != _lifecycle) {
       LifecycleState? currState;
       if (_lifecycle != null) {
         currState = _lifecycle!.currentState;
@@ -52,7 +52,7 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
           obs.value.lifecycle = null;
         }
       }
-      _lifecycle = owner?.lifecycle;
+      _lifecycle = lifecycle;
       if (_lifecycle != null) {
         final entries = [..._observers.entries];
         for (var obs in entries) {
@@ -116,50 +116,5 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
       l = l.parent;
     }
     return null;
-  }
-}
-
-mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
-    implements LifecycleObserverRegister {
-  final _LifecycleObserverRegisterDelegate _delegate =
-      _LifecycleObserverRegisterDelegate();
-
-  @override
-  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
-
-  @override
-  Lifecycle? get lifecycle => _delegate.lifecycle;
-
-  @override
-  void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = true}) =>
-      _delegate.registerLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle);
-
-  @override
-  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
-      _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
-
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
-      _delegate.findLifecycleObserver<LO>();
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    LifecycleOwner? lifecycleOwner =
-        context.findAncestorStateOfType<LifecycleOwnerStateMixin>();
-    _delegate.lifecycleOwner = lifecycleOwner;
-  }
-
-  @override
-  void dispose() {
-    _delegate.dispose();
-    super.dispose();
   }
 }

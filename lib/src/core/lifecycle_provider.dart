@@ -1,4 +1,4 @@
-part of 'lifecycle_mixin.dart';
+part of 'lifecycle_register.dart';
 
 abstract class LifecycleOwnerWidget extends StatefulWidget {
   final Widget child;
@@ -41,7 +41,7 @@ class LifecycleOwnerElement extends StatefulElement {
   LifecycleOwnerStateMixin get lifecycleOwner =>
       state as LifecycleOwnerStateMixin;
 
-  LifecycleOwnerElement(LifecycleOwnerWidget widget) : super(widget) {
+  LifecycleOwnerElement(LifecycleOwnerWidget super.widget) {
     _lifecycle.addObserver(
       LifecycleObserver.stateChange((state) {
         if (state > LifecycleState.created) {
@@ -112,7 +112,7 @@ mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
 
   @override
   late final _LifecycleObserverRegisterDelegate _delegate =
-      _LifecycleObserverRegisterDelegate()..lifecycleOwner = this;
+      _LifecycleObserverRegisterDelegate()..lifecycle = _lifecycle;
 
   @override
   Lifecycle get lifecycle => _lifecycle;
@@ -172,4 +172,48 @@ mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
   Widget build(BuildContext context) => buildReturn;
 
   Widget get buildReturn => _lifecycleOwnerBuildReturn;
+}
+
+mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
+    implements LifecycleObserverRegister {
+  final _LifecycleObserverRegisterDelegate _delegate =
+      _LifecycleObserverRegisterDelegate();
+
+  @override
+  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
+
+  @override
+  Lifecycle? get lifecycle => _delegate.lifecycle;
+
+  @override
+  void registerLifecycleObserver(LifecycleObserver observer,
+          {LifecycleState? startWith, bool fullCycle = true}) =>
+      _delegate.registerLifecycleObserver(observer,
+          startWith: startWith, fullCycle: fullCycle);
+
+  @override
+  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
+      _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
+
+  @override
+  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
+      _delegate.findLifecycleObserver<LO>();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final p = context.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+    _delegate.lifecycle = p?.lifecycle;
+  }
+
+  @override
+  void dispose() {
+    _delegate.dispose();
+    super.dispose();
+  }
 }

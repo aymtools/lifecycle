@@ -1,32 +1,9 @@
 import 'dart:async';
 
-import 'lifecycle.dart';
-import 'lifecycle_mixin.dart';
+import '../core/lifecycle.dart';
+import '../core/lifecycle_register.dart';
 
-mixin LifecycleEventDefaultObserver implements LifecycleEventObserver {
-  @override
-  void onAnyEvent(LifecycleOwner owner, LifecycleEvent event) {}
-
-  @override
-  void onCreate(LifecycleOwner owner) {}
-
-  @override
-  void onPause(LifecycleOwner owner) {}
-
-  @override
-  void onResume(LifecycleOwner owner) {}
-
-  @override
-  void onStart(LifecycleOwner owner) {}
-
-  @override
-  void onStop(LifecycleOwner owner) {}
-
-  @override
-  void onDestroy(LifecycleOwner owner) {}
-}
-
-class LifecycleEventObserverStream with LifecycleEventDefaultObserver {
+class LifecycleEventObserverStream with LifecycleEventObserver {
   late final StreamController<LifecycleEvent> _controller =
       StreamController<LifecycleEvent>(sync: true);
   late final Stream<LifecycleEvent> _eventStream =

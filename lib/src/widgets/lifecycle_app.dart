@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-import 'lifecycle.dart';
-import 'lifecycle_mixin.dart';
+import '../core/lifecycle.dart';
+import '../core/lifecycle_register.dart';
 
 class LifecycleApp extends LifecycleOwnerWidget {
   const LifecycleApp({super.key, required super.child});
@@ -28,6 +28,7 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
         _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
         break;
       case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
         _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
         break;
       case AppLifecycleState.detached:
@@ -39,13 +40,12 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
 
 mixin LifecycleAppState<T extends LifecycleOwnerWidget>
     on LifecycleOwnerStateMixin<T> {
-  late _NativeAppLifecycleStateObserver _nativeAppLifecycleStateObserver;
+  late final _NativeAppLifecycleStateObserver _nativeAppLifecycleStateObserver =
+      _NativeAppLifecycleStateObserver(lifecycleRegistry);
 
   @override
   void initState() {
     super.initState();
-    _nativeAppLifecycleStateObserver =
-        _NativeAppLifecycleStateObserver(lifecycleRegistry);
     WidgetsBinding.instance.addObserver(_nativeAppLifecycleStateObserver);
   }
 
