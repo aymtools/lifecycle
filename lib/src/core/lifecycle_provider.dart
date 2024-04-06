@@ -44,7 +44,7 @@ class LifecycleOwnerElement extends StatefulElement {
   LifecycleOwnerElement(LifecycleOwnerWidget super.widget) {
     _lifecycle.addObserver(
       LifecycleObserver.stateChange((state) {
-        if (state > LifecycleState.created) {
+        if (_lifecycle.currentState > LifecycleState.created) {
           markNeedsBuild();
         }
       }),
@@ -61,7 +61,7 @@ class LifecycleOwnerElement extends StatefulElement {
     final result = super.build();
     assert(
         result == _lifecycleOwnerBuildReturn || result == const Placeholder(),
-        '不可自定义build');
+        'The build content cannot be customized; it must return buildReturn.');
     return _EffectiveLifecycle(
       lifecycle: lifecycleOwner.lifecycle,
       tag: widget.tag,
@@ -76,8 +76,10 @@ class LifecycleOwnerElement extends StatefulElement {
     }
     lifecycleOwner._lifecycle = _lifecycle;
 
-    final p = parent?.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-    _lifecycle.bindParentLifecycle(p?.lifecycle);
+    final parentLifecycle = parent
+        ?.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()
+        ?.lifecycle;
+    _lifecycle.bindParentLifecycle(parentLifecycle);
     _lifecycle.handleLifecycleEvent(LifecycleEvent.create);
 
     super.mount(parent, newSlot);
@@ -85,20 +87,16 @@ class LifecycleOwnerElement extends StatefulElement {
 
   @override
   void didChangeDependencies() {
-    final p = dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-    _lifecycle.bindParentLifecycle(p?.lifecycle);
+    final parentLifecycle =
+        dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()?.lifecycle;
+    _lifecycle.bindParentLifecycle(parentLifecycle);
     super.didChangeDependencies();
-  }
-
-  @override
-  void deactivate() {
-    super.deactivate();
-    _lifecycle.bindParentLifecycle(null);
   }
 
   @override
   void unmount() {
     _lifecycle.handleLifecycleEvent(LifecycleEvent.destroy);
+    _lifecycle.bindParentLifecycle(null);
     super.unmount();
     _lifecycle.clearObserver();
   }
@@ -132,6 +130,13 @@ mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
           {LifecycleState? startWith, bool fullCycle = true}) =>
       _delegate.registerLifecycleObserver(observer,
           startWith: startWith, fullCycle: fullCycle);
+
+  @override
+  void addLifecycleObserver(LifecycleObserver observer,
+      {LifecycleState? startWith, bool fullCycle = true}) {
+    _delegate.addLifecycleObserver(observer,
+        startWith: startWith, fullCycle: fullCycle);
+  }
 
   @override
   void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
@@ -188,8 +193,15 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
   @override
   void registerLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith, bool fullCycle = true}) =>
-      _delegate.registerLifecycleObserver(observer,
+      _delegate.addLifecycleObserver(observer,
           startWith: startWith, fullCycle: fullCycle);
+
+  @override
+  void addLifecycleObserver(LifecycleObserver observer,
+      {LifecycleState? startWith, bool fullCycle = true}) {
+    _delegate.addLifecycleObserver(observer,
+        startWith: startWith, fullCycle: fullCycle);
+  }
 
   @override
   void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>

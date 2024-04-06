@@ -20,7 +20,12 @@ abstract class LifecycleObserverRegister {
   LifecycleState get currentLifecycleState;
 
   void registerLifecycleObserver(LifecycleObserver observer,
-      {LifecycleState? startWith, bool fullCycle = false});
+          {LifecycleState? startWith, bool fullCycle = true}) =>
+      addLifecycleObserver(observer,
+          startWith: startWith, fullCycle: fullCycle);
+
+  void addLifecycleObserver(LifecycleObserver observer,
+      {LifecycleState? startWith, bool fullCycle = true});
 
   //移除Observer [fullCycle] 不为空时覆盖注册时的配置
   void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle});
@@ -28,7 +33,7 @@ abstract class LifecycleObserverRegister {
   LO? findLifecycleObserver<LO extends LifecycleObserver>();
 }
 
-class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
+class _LifecycleObserverRegisterDelegate extends LifecycleObserverRegister {
   Lifecycle? _lifecycle;
   final Map<LifecycleObserver, _ObserverS> _observers = {};
 
@@ -64,7 +69,7 @@ class _LifecycleObserverRegisterDelegate implements LifecycleObserverRegister {
   }
 
   @override
-  void registerLifecycleObserver(LifecycleObserver observer,
+  void addLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? startWith, bool fullCycle = true}) {
     if (_observers.containsKey(observer)) return;
     var os = _ObserverS(startWith ?? LifecycleState.destroyed, fullCycle);

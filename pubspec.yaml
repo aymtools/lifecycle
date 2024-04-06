@@ -1,6 +1,6 @@
 name: anlifecycle
 description: AnLifecycle draws on lifecycle in androidx to implement lifecycle on Flutter.
-version: 2.0.0-dev.3
+version: 2.0.0-dev.4
 homepage: https://github.com/aymtools/lifecycle/
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cancellable: ^2.0.0-dev.1
+#  cancellable: ^2.0.0-dev.1
 
 dev_dependencies:
   flutter_lints: ^3.0.2

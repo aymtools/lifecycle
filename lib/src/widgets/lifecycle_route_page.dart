@@ -1,7 +1,28 @@
-part of 'lifecycle_page.dart';
+part of 'lifecycle_navigator_observer.dart';
 
-abstract class _RouteChanger {
-  void onChange(bool Function(Route route) checkVisible);
+class LifecycleRoutePage extends LifecycleOwnerWidget {
+  final Route? route;
+
+  const LifecycleRoutePage({this.route, super.key, required super.child});
+
+  @override
+  LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
+      _LifecycleRoutePageState();
+}
+
+class _LifecycleRoutePageState extends State<LifecycleRoutePage>
+    with
+        AutomaticKeepAliveClientMixin,
+        LifecycleOwnerStateMixin,
+        LifecycleRoutePageState {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return buildReturn;
+  }
 }
 
 mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
@@ -62,19 +83,3 @@ mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
   }
 }
 
-Expando<Set<_RouteChanger>> _navigatorRouteChanger =
-    Expando('navigatorRouteChanger');
-
-Expando<List<Route>> _historyRoute = Expando('_historyRoute');
-
-extension _ExpandoGetOrPutExt<T extends Object> on Expando<T> {
-  T getOrPut(Object? key, T Function() defaultValue) {
-    if (key == null) return defaultValue();
-    T? r = this[key];
-    if (r == null) {
-      r = defaultValue();
-      this[key] = r;
-    }
-    return r;
-  }
-}

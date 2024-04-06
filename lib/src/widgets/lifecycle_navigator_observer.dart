@@ -1,16 +1,38 @@
+import 'package:anlifecycle/src/tools/list_ext.dart';
 import 'package:flutter/widgets.dart';
 
 import '../core/lifecycle.dart';
 import '../core/lifecycle_register.dart';
 
-part 'lifecycle_page_route.dart';
+part 'lifecycle_route_page.dart';
+
+abstract class _RouteChanger {
+  void onChange(bool Function(Route route) checkVisible);
+}
+
+Expando<Set<_RouteChanger>> _navigatorRouteChanger =
+    Expando('navigatorRouteChanger');
+
+Expando<List<Route>> _historyRoute = Expando('_historyRoute');
+
+extension _ExpandoGetOrPutExt<T extends Object> on Expando<T> {
+  T getOrPut(Object? key, T Function() defaultValue) {
+    if (key == null) return defaultValue();
+    T? result = this[key];
+    if (result == null) {
+      result = defaultValue();
+      this[key] = result;
+    }
+    return result;
+  }
+}
 
 class LifecycleNavigatorObserver extends NavigatorObserver {
-  final bool useHooked;
-
   final List<Route> _visibleRoutes = [];
 
-  LifecycleNavigatorObserver({this.useHooked = false});
+  LifecycleNavigatorObserver();
+
+  factory LifecycleNavigatorObserver.hookMode() => LifecycleHookObserver();
 
   void _subscribe(_RouteChanger changer) {
     final nav = navigator;
@@ -133,27 +155,67 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   }
 }
 
-class LifecycleRoutePage extends LifecycleOwnerWidget {
-  final Route? route;
-
-  const LifecycleRoutePage({this.route, super.key, required super.child});
+class LifecycleHookObserver extends LifecycleNavigatorObserver {
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    if (route is ModalRoute) {
+      _hook(route);
+    }
+    super.didPush(route, previousRoute);
+  }
 
   @override
-  LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
-      _LifecycleRoutePageState();
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    if (newRoute is ModalRoute) {
+      _hook(newRoute);
+    }
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+  }
+
+  void _hook(ModalRoute route) {
+    if (route is LifecycleRoute && (route as LifecycleRoute).doNotHookMe) {
+      return;
+    }
+
+    final entries = route.overlayEntries;
+    final find = entries.firstWhereTypeOrNull<_HookOverlayEntry>();
+    if (find == null && entries.isNotEmpty) {
+      int index = entries.length > 1 ? 1 : 0;
+      final needHook = entries[index];
+      entries[index] = _HookOverlayEntry(
+          builder: needHook.builder,
+          maintainState: needHook.maintainState,
+          route: route);
+    }
+  }
 }
 
-class _LifecycleRoutePageState extends State<LifecycleRoutePage>
-    with
-        AutomaticKeepAliveClientMixin,
-        LifecycleOwnerStateMixin,
-        LifecycleRoutePageState {
-  @override
-  bool get wantKeepAlive => true;
+mixin LifecycleRoute<T> on OverlayRoute<T> {
+  /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求) 如需要在执行的过程中动态变化 使用此混入关闭hook进行定制
+  /// 如需穿透当前的route 则不需要任何处理
+  /// 如需要自定义lifecycle 推荐按使用 在buildPage中返回 LifecycleRoutePage包裹的widget
+  bool doNotHookMe = false;
+}
+
+Widget Function(BuildContext) _hookBuilder(
+    Widget Function(BuildContext) source, ModalRoute route) {
+  return (context) => LifecycleRoutePage(
+        route: route,
+        child: Builder(
+          builder: source,
+        ),
+      );
+}
+
+class _HookOverlayEntry extends OverlayEntry {
+  _HookOverlayEntry({
+    required this.route,
+    required Widget Function(BuildContext) builder,
+    super.opaque,
+    super.maintainState,
+  }) : super(builder: _hookBuilder(builder, route));
+  final ModalRoute route;
 
   @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return buildReturn;
-  }
+  bool get maintainState => route.maintainState;
 }
