@@ -14,15 +14,10 @@ class _ObserverS {
       [this.startWith = LifecycleState.destroyed, this.fullCycle = false]);
 }
 
-abstract class LifecycleObserverRegister {
+abstract interface class LifecycleObserverRegister {
   Lifecycle? get lifecycle;
 
   LifecycleState get currentLifecycleState;
-
-  void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = true}) =>
-      addLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle);
 
   void addLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? startWith, bool fullCycle = true});
@@ -31,6 +26,13 @@ abstract class LifecycleObserverRegister {
   void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle});
 
   LO? findLifecycleObserver<LO extends LifecycleObserver>();
+}
+
+extension LifecycleObserverRegisterSupport on LifecycleObserverRegister {
+  void registerLifecycleObserver(LifecycleObserver observer,
+          {LifecycleState? startWith, bool fullCycle = true}) =>
+      addLifecycleObserver(observer,
+          startWith: startWith, fullCycle: fullCycle);
 }
 
 class _LifecycleObserverRegisterDelegate extends LifecycleObserverRegister {

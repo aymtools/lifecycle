@@ -80,9 +80,11 @@ class LifecycleOwnerElement extends StatefulElement {
         ?.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()
         ?.lifecycle;
     _lifecycle.bindParentLifecycle(parentLifecycle);
-    _lifecycle.handleLifecycleEvent(LifecycleEvent.create);
 
+    //在这里会触发首次的state.didChangeDependencies 需要纠结 start事件的处理
     super.mount(parent, newSlot);
+
+    _lifecycle.handleLifecycleEvent(LifecycleEvent.start);
   }
 
   @override
@@ -124,12 +126,6 @@ mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
-
-  @override
-  void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = true}) =>
-      _delegate.registerLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle);
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,
@@ -189,12 +185,6 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
 
   @override
   Lifecycle? get lifecycle => _delegate.lifecycle;
-
-  @override
-  void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = true}) =>
-      _delegate.addLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle);
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,

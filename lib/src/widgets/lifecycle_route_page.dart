@@ -6,7 +6,7 @@ class LifecycleRoutePage extends LifecycleOwnerWidget {
   const LifecycleRoutePage({this.route, super.key, required super.child});
 
   @override
-  LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
+  LifecycleRoutePageState<LifecycleRoutePage> createState() =>
       _LifecycleRoutePageState();
 }
 

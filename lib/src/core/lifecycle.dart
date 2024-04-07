@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:math';
 
+part 'lifecycle_callback.dart';
+
 ///生命周期的事件
 enum LifecycleEvent { create, start, resume, pause, stop, destroy }
 
@@ -119,7 +121,7 @@ final class LifecycleRegistry extends Lifecycle {
 
   late final _LifecycleParentStateChangeObserver _maxStateChangeObserver =
       _LifecycleParentStateChangeObserver(
-          this, (owner, state) => _handleMaxLifecycleStateChange(state));
+          provider, (owner, state) => _handleMaxLifecycleStateChange(state));
 
   final LinkedHashMap<LifecycleObserver, _ObserverDispatcher> _observers =
       LinkedHashMap<LifecycleObserver, _ObserverDispatcher>();
@@ -168,6 +170,7 @@ final class LifecycleRegistry extends Lifecycle {
     if (_parentLifecycle == parent) {
       return;
     }
+
     _maxStateChangeObserver.parentLifecycle = parent;
     _parentLifecycle = parent;
 
@@ -292,7 +295,7 @@ typedef _LifecycleStateChangeCallback = void Function(
 
 class _LifecycleParentStateChangeObserver
     implements LifecycleStateChangeObserver {
-  final Lifecycle childLifecycle;
+  final LifecycleOwner childLifecycle;
   final _LifecycleStateChangeCallback callback;
 
   Lifecycle? _parentLifecycle;
@@ -303,15 +306,17 @@ class _LifecycleParentStateChangeObserver
     if (_parentLifecycle == parent) {
       return;
     }
+    _parentLifecycle?.onDetach(childLifecycle);
     if (_parentLifecycle != null) {
-      childLifecycle.removeObserver(this);
+      childLifecycle.lifecycle.removeObserver(this);
       _parentLifecycle!.removeObserver(this);
     }
 
     _parentLifecycle = parent;
+    _parentLifecycle?.onAttach(childLifecycle);
 
     if (_parentLifecycle != null) {
-      childLifecycle.addObserver(this);
+      childLifecycle.lifecycle.addObserver(this);
       _parentLifecycle!.addObserver(this);
     }
   }
@@ -322,8 +327,10 @@ class _LifecycleParentStateChangeObserver
       callback.call(owner, state);
     }
     if (state == LifecycleState.destroyed) {
-      childLifecycle.removeObserver(this);
+      childLifecycle.lifecycle.removeObserver(this);
       _parentLifecycle?.removeObserver(this);
+
+      _parentLifecycle?.onDetach(childLifecycle);
     }
   }
 }
@@ -358,8 +365,7 @@ class _StateObserverDispatcher extends _ObserverDispatcher {
   final LifecycleStateChangeObserver _observer;
   final _EventObserverDispatcher? _eventObserver;
 
-  _StateObserverDispatcher(
-      super.state, LifecycleStateChangeObserver observer)
+  _StateObserverDispatcher(super.state, LifecycleStateChangeObserver observer)
       : _observer = observer,
         _eventObserver = observer is LifecycleEventObserver
             ? _EventObserverDispatcher(
@@ -383,8 +389,7 @@ class _StateObserverDispatcher extends _ObserverDispatcher {
 class _EventObserverDispatcher extends _ObserverDispatcher {
   final LifecycleEventObserver _observer;
 
-  _EventObserverDispatcher(
-      super.state, LifecycleEventObserver observer)
+  _EventObserverDispatcher(super.state, LifecycleEventObserver observer)
       : _observer = observer,
         super._();
 

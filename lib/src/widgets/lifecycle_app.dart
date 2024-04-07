@@ -7,7 +7,7 @@ class LifecycleApp extends LifecycleOwnerWidget {
   const LifecycleApp({super.key, required super.child});
 
   @override
-  LifecycleOwnerStateMixin<LifecycleApp> createState() => _LifecycleAppState();
+  LifecycleAppState<LifecycleApp> createState() => _LifecycleAppState();
 }
 
 class _LifecycleAppState extends State<LifecycleApp>
