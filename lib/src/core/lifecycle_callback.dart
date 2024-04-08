@@ -51,10 +51,10 @@ extension LifecycleCallback on Lifecycle {
   }
 }
 
-abstract interface class LifecycleAttachCallback {
+abstract class LifecycleAttachCallback {
   void onAttach(Lifecycle parent, LifecycleOwner childOwner);
 }
 
-abstract interface class LifecycleDetachCallback {
+abstract class LifecycleDetachCallback {
   void onDetach(Lifecycle parent, LifecycleOwner childOwner);
 }

@@ -88,11 +88,11 @@ abstract class LifecycleObserver {
       _ProxyLifecycleEventObserver(eventDestroy: event);
 }
 
-abstract interface class LifecycleOwner {
+abstract class LifecycleOwner {
   Lifecycle get lifecycle;
 }
 
-abstract base class Lifecycle {
+abstract class Lifecycle {
   void addObserver(LifecycleObserver observer, [LifecycleState? startWith]);
 
   void removeObserver(LifecycleObserver observer, [LifecycleState? endWith]);
@@ -102,7 +102,7 @@ abstract base class Lifecycle {
   Lifecycle? get parent;
 }
 
-final class LifecycleRegistry extends Lifecycle {
+class LifecycleRegistry extends Lifecycle {
   final LifecycleOwner provider;
 
   Lifecycle? _parentLifecycle;
@@ -270,7 +270,7 @@ final class LifecycleRegistry extends Lifecycle {
   }
 }
 
-abstract mixin class LifecycleEventObserver implements LifecycleObserver {
+abstract class LifecycleEventObserver implements LifecycleObserver {
   void onCreate(LifecycleOwner owner) {}
 
   void onStart(LifecycleOwner owner) {}
@@ -286,7 +286,7 @@ abstract mixin class LifecycleEventObserver implements LifecycleObserver {
   void onAnyEvent(LifecycleOwner owner, LifecycleEvent event) {}
 }
 
-abstract mixin class LifecycleStateChangeObserver implements LifecycleObserver {
+abstract class LifecycleStateChangeObserver implements LifecycleObserver {
   void onStateChange(LifecycleOwner owner, LifecycleState state);
 }
 
