@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../core/lifecycle.dart';
-import '../core/lifecycle_register.dart';
+import 'package:anlifecycle/anlifecycle.dart';
 
 class LifecycleApp extends LifecycleOwnerWidget {
   const LifecycleApp({super.key, required super.child});

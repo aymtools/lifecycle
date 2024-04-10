@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'package:anlifecycle/anlifecycle.dart';
 
-import '../core/lifecycle.dart';
-import '../core/lifecycle_register.dart';
+@Deprecated('use LifecycleEventObserver')
+typedef LifecycleEventDefaultObserver = LifecycleEventObserver;
 
 class LifecycleEventObserverStream with LifecycleEventObserver {
   late final StreamController<LifecycleEvent> _controller =

@@ -42,7 +42,7 @@ class _LifecycleObserverRegisterDelegate extends LifecycleObserverRegister {
   LifecycleState _currState = LifecycleState.initialized;
 
   @override
-  Lifecycle? get lifecycle => _lifecycle;
+  Lifecycle get lifecycle => _lifecycle!;
 
   @override
   LifecycleState get currentLifecycleState =>
@@ -112,7 +112,7 @@ class _LifecycleObserverRegisterDelegate extends LifecycleObserverRegister {
     final os = _observers.keys.whereType<LO>();
     LO? o = os.isEmpty ? null : os.first;
     if (o != null) return o;
-    var l = lifecycle;
+    Lifecycle? l = lifecycle;
     while (l != null && l is LifecycleRegistry) {
       var owner = l.provider;
       if (owner is LifecycleOwnerStateMixin) {

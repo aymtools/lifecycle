@@ -1,8 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../core/lifecycle.dart';
-import '../core/lifecycle_register.dart';
+import 'package:anlifecycle/anlifecycle.dart';
 
 class LifecyclePageViewItem extends LifecycleOwnerWidget {
   final int index;

@@ -1,4 +1,4 @@
-part of 'lifecycle_register.dart';
+part of 'lifecycle_observer_registry.dart';
 
 abstract class LifecycleOwnerWidget extends StatefulWidget {
   final Widget child;
@@ -204,6 +204,12 @@ mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
   @override
   void initState() {
     super.initState();
+    context.visitAncestorElements((element) {
+      final p =
+          context.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+      _delegate.lifecycle = p?.lifecycle;
+      return false;
+    });
   }
 
   @override
