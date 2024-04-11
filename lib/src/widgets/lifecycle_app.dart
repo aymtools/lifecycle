@@ -51,7 +51,7 @@ class LifecycleApp extends LifecycleOwnerWidget {
   LifecycleAppState<LifecycleApp> createState() => _LifecycleAppState();
 }
 
-abstract base class LifecycleAppBaseState<LOW extends LifecycleApp>
+abstract class LifecycleAppBaseState<LOW extends LifecycleApp>
     extends State<LOW> with LifecycleOwnerStateMixin, LifecycleAppState {}
 
-final class _LifecycleAppState extends LifecycleAppBaseState<LifecycleApp> {}
+class _LifecycleAppState extends LifecycleAppBaseState<LifecycleApp> {}

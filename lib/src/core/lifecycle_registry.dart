@@ -10,7 +10,7 @@ class _ObserverS {
       [this.startWith = LifecycleState.destroyed, this.fullCycle = false]);
 }
 
-abstract interface class LifecycleObserverRegistry {
+abstract class LifecycleObserverRegistry {
   Lifecycle get lifecycle;
 
   LifecycleState get currentLifecycleState;
