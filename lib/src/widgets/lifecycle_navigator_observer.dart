@@ -30,6 +30,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
 
   LifecycleNavigatorObserver();
 
+  /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求) 可以配合[LifecycleRoute]来跳过hook自定义分发，也可以直接使用默认构造函数完全自定义你的route状态
   factory LifecycleNavigatorObserver.hookMode() => LifecycleHookObserver();
 
   void _subscribe(_RouteChanger changer) {
@@ -153,6 +154,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   }
 }
 
+/// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求)
 class LifecycleHookObserver extends LifecycleNavigatorObserver {
   @override
   void didPush(Route route, Route? previousRoute) {
