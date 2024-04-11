@@ -11,7 +11,7 @@ mixin LifecycleEventPrinter<W extends StatefulWidget>
     final printer = LifecycleObserver.eventAny((event) {
       print('LifecycleEventPrinter $runtimeType $otherTag $event');
     });
-    registerLifecycleObserver(printer);
+    addLifecycleObserver(printer);
   }
 }
 
@@ -25,6 +25,6 @@ mixin LifecycleStatePrinter<W extends StatefulWidget>
     final printer = LifecycleObserver.stateChange((state) {
       print('LifecycleStatePrinter $runtimeType $otherTag $state');
     });
-    registerLifecycleObserver(printer);
+    addLifecycleObserver(printer);
   }
 }

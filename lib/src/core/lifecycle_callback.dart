@@ -23,9 +23,9 @@ extension LifecycleCallback on Lifecycle {
     }
   }
 
-  void registerLifecycleAttachCallbacks(LifecycleAttachCallback callback) {
+  void addLifecycleAttachCallbacks(LifecycleAttachCallback callback) {
     assert(currentState > LifecycleState.destroyed,
-        'Must register after the LifecycleState.initialized.');
+        'Must add after the LifecycleState.initialized.');
 
     var callbacks = _attachCallbacks[this];
     if (callbacks == null) {
@@ -37,9 +37,9 @@ extension LifecycleCallback on Lifecycle {
     callbacks.add(callback);
   }
 
-  void registerLifecycleDetachCallbacks(LifecycleDetachCallback callback) {
+  void addLifecycleDetachCallbacks(LifecycleDetachCallback callback) {
     assert(currentState > LifecycleState.destroyed,
-        'Must register after the LifecycleState.initialized.');
+        'Must add after the LifecycleState.initialized.');
     var callbacks = _detachCallback[this];
     if (callbacks == null) {
       callbacks = {};

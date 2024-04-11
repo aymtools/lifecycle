@@ -72,7 +72,8 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-#### 1.2 Use LifecycleNavigatorObserver to register routing event changes, and use LifecycleRoutePage to wrap PageContent Widget to distribute life cycle events.
+#### 1.2 Use LifecycleNavigatorObserver.hookMode() to register routing event changes.
+Note: If you use LifecycleNavigatorObserver, you must use LifecycleRoutePage to wrap the PageContent to distribute lifecycle events.
 
 ```dart
  class MyApp extends StatelessWidget {
@@ -86,16 +87,12 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        //Use LifecycleNavigatorObserver to register routing event changes
-        navigatorObservers: [LifecycleNavigatorObserver()],
-        routes: routes.map(
-              (key, value) =>
-              MapEntry(
-                  key, (_) =>
-              //Use LifecycleRoutePage to wrap PageContent Widget to distribute life cycle events.//Use LifecycleRoutePage to wrap PageContent Widget to distribute life cycle events.
-              LifecycleRoutePage(child: Builder(
-                  builder: value))),
-        ),
+        //Use LifecycleNavigatorObserver.hookMode() to register routing event changes
+        //If you use LifecycleNavigatorObserver, you must use LifecycleRoutePage to wrap the PageContent to distribute lifecycle events.
+        navigatorObservers: [
+          LifecycleNavigatorObserver.hookMode(),
+        ],
+        routes: routes,
       ),
     );
   }
@@ -106,7 +103,7 @@ class MyApp extends StatelessWidget {
 
 ```dart
 mixin LifecycleEventPrinter<W extends StatefulWidget>
-on LifecycleObserverRegisterMixin<W> {
+on LifecycleObserverRegistryMixin<W> {
   String get otherTag => '';
 
   @override
@@ -115,13 +112,13 @@ on LifecycleObserverRegisterMixin<W> {
     final printer = LifecycleObserver.eventAny((event) {
       print('LifecycleEventPrinter $runtimeType $otherTag $event');
     });
-    registerLifecycleObserver(printer);
+    addLifecycleObserver(printer);
   }
 }
 
 
 mixin LifecycleStatePrinter<W extends StatefulWidget>
-on LifecycleObserverRegisterMixin<W> {
+on LifecycleObserverRegistryMixin<W> {
   String get otherTag => '';
 
   @override
@@ -130,7 +127,7 @@ on LifecycleObserverRegisterMixin<W> {
     final printer = LifecycleObserver.stateChange((state) {
       print('LifecycleStatePrinter $runtimeType $otherTag $state');
     });
-    registerLifecycleObserver(printer);
+    addLifecycleObserver(printer);
   }
 }
 
@@ -142,7 +139,7 @@ class FistPage extends StatefulWidget {
 }
 
 class _FistPageState extends State<FistPage>
-    with LifecycleObserverRegisterMixin, LifecycleEventPrinter {
+    with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
 }
 
 ```
