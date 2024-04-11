@@ -1,8 +1,6 @@
+import 'package:anlifecycle/anlifecycle.dart';
 import 'package:anlifecycle/src/tools/list_ext.dart';
 import 'package:flutter/widgets.dart';
-
-import '../core/lifecycle.dart';
-import '../core/lifecycle_register.dart';
 
 part 'lifecycle_route_page.dart';
 

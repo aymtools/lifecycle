@@ -1,7 +1,22 @@
 import 'dart:async';
+import 'package:anlifecycle/anlifecycle.dart';
+import 'package:flutter/widgets.dart';
 
-import '../core/lifecycle.dart';
-import '../core/lifecycle_register.dart';
+typedef LifecycleObserverRegister = LifecycleObserverRegistry;
+typedef LifecycleObserverRegisterMixin<W extends StatefulWidget>
+    = LifecycleObserverRegistryMixin<W>;
+
+extension LifecycleObserverRegisterSupport on LifecycleObserverRegistry {
+  void registerLifecycleObserver(LifecycleObserver observer,
+          {LifecycleState? startWith, bool fullCycle = true}) =>
+      addLifecycleObserver(observer,
+          startWith: startWith, fullCycle: fullCycle);
+
+  void registerLifecycleObserverToOwner<LO extends LifecycleOwner>(
+          LifecycleObserver observer,
+          [bool cycleCompanionOwner = false]) =>
+      addLifecycleObserverToOwner(observer, cycleCompanionOwner);
+}
 
 class LifecycleEventObserverStream with LifecycleEventObserver {
   late final StreamController<LifecycleEvent> _controller =
@@ -55,13 +70,13 @@ class LifecycleStateObserverStream implements LifecycleStateChangeObserver {
   }
 }
 
-class _LifecycleRegisterToObserver<LO extends LifecycleOwner>
+class _LifecycleObserverAddToOwner<LO extends LifecycleOwner>
     implements LifecycleStateChangeObserver {
   final LifecycleObserver _observer;
   final bool _cycleCompanionOwner;
   Lifecycle? _target;
 
-  _LifecycleRegisterToObserver(this._observer,
+  _LifecycleObserverAddToOwner(this._observer,
       [this._cycleCompanionOwner = false]);
 
   @override
@@ -113,7 +128,7 @@ extension _LifecycleOwnerFinder on LifecycleOwner {
   }
 }
 
-extension LifecycleObserverAutoRegisterMixinExt on LifecycleObserverRegister {
+extension LifecycleObserverRegistryMixinExt on LifecycleObserverRegistry {
   Future<LifecycleEvent> nextLifecycleEvent(LifecycleEvent event) {
     var observer = LifecycleEventObserverStream();
     registerLifecycleObserver(observer, startWith: currentLifecycleState);
@@ -134,10 +149,10 @@ extension LifecycleObserverAutoRegisterMixinExt on LifecycleObserverRegister {
   Future<LifecycleState> nextLifecycleResumedState() =>
       nextLifecycleState(LifecycleState.resumed);
 
-  void registerLifecycleObserverToOwner<LO extends LifecycleOwner>(
+  void addLifecycleObserverToOwner<LO extends LifecycleOwner>(
       LifecycleObserver observer,
       [bool cycleCompanionOwner = false]) {
-    var o = _LifecycleRegisterToObserver<LO>(observer, cycleCompanionOwner);
+    var o = _LifecycleObserverAddToOwner<LO>(observer, cycleCompanionOwner);
     registerLifecycleObserver(o);
   }
 }

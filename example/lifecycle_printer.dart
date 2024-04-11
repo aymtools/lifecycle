@@ -2,7 +2,7 @@ import 'package:anlifecycle/lifecycle.dart';
 import 'package:flutter/widgets.dart';
 
 mixin LifecycleEventPrinter<W extends StatefulWidget>
-    on LifecycleObserverRegisterMixin<W> {
+    on LifecycleObserverRegistryMixin<W> {
   String get otherTag => '';
 
   @override
@@ -16,7 +16,7 @@ mixin LifecycleEventPrinter<W extends StatefulWidget>
 }
 
 mixin LifecycleStatePrinter<W extends StatefulWidget>
-    on LifecycleObserverRegisterMixin<W> {
+    on LifecycleObserverRegistryMixin<W> {
   String get otherTag => '';
 
   @override

@@ -1,4 +1,4 @@
-part of 'lifecycle_register.dart';
+part of 'lifecycle.dart';
 
 abstract class LifecycleOwnerWidget extends StatefulWidget {
   final Widget child;
@@ -10,30 +10,29 @@ abstract class LifecycleOwnerWidget extends StatefulWidget {
   LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState();
 
   @override
-  StatefulElement createElement() => LifecycleOwnerElement(this);
+  StatefulElement createElement() => _LifecycleOwnerElement(this);
 }
 
 class _EffectiveLifecycle extends InheritedWidget {
-  _EffectiveLifecycle({
+  const _EffectiveLifecycle({
     required this.lifecycle,
     required this.tag,
     required super.child,
-  }) : currentState = lifecycle.currentState;
+  });
 
   final Lifecycle lifecycle;
 
-  final LifecycleState currentState;
+  LifecycleState get currentState => lifecycle.currentState;
   final String? tag;
 
   @override
   bool updateShouldNotify(covariant _EffectiveLifecycle oldWidget) =>
-      lifecycle != oldWidget.lifecycle ||
-      currentState != oldWidget.currentState ||
-      tag != oldWidget.tag;
+      lifecycle != oldWidget.lifecycle || tag != oldWidget.tag;
 }
 
-class LifecycleOwnerElement extends StatefulElement {
-  late final LifecycleRegistry _lifecycle = LifecycleRegistry(lifecycleOwner);
+class _LifecycleOwnerElement extends StatefulElement {
+  late final LifecycleRegistry _lifecycle =
+      LifecycleRegistry(lifecycleOwner);
 
   @override
   LifecycleOwnerWidget get widget => super.widget as LifecycleOwnerWidget;
@@ -41,14 +40,8 @@ class LifecycleOwnerElement extends StatefulElement {
   LifecycleOwnerStateMixin get lifecycleOwner =>
       state as LifecycleOwnerStateMixin;
 
-  LifecycleOwnerElement(LifecycleOwnerWidget super.widget) {
-    _lifecycle.addObserver(
-      LifecycleObserver.stateChange((state) {
-        if (_lifecycle.currentState > LifecycleState.created) {
-          markNeedsBuild();
-        }
-      }),
-    );
+  _LifecycleOwnerElement(LifecycleOwnerWidget super.widget) {
+    lifecycleOwner._lifecycle = _lifecycle;
   }
 
   @override
@@ -74,7 +67,6 @@ class LifecycleOwnerElement extends StatefulElement {
     if (_lifecycle.currentState < LifecycleState.created) {
       _lifecycle.handleLifecycleEvent(LifecycleEvent.create);
     }
-    lifecycleOwner._lifecycle = _lifecycle;
 
     final parentLifecycle = parent
         ?.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()
@@ -101,121 +93,5 @@ class LifecycleOwnerElement extends StatefulElement {
     _lifecycle.bindParentLifecycle(null);
     super.unmount();
     _lifecycle.clearObserver();
-  }
-}
-
-const _lifecycleOwnerBuildReturn = SizedBox.shrink();
-
-mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
-    implements LifecycleOwner, LifecycleObserverRegisterMixin<T> {
-  late final LifecycleRegistry _lifecycle;
-
-  @override
-  late final _LifecycleObserverRegisterDelegate _delegate =
-      _LifecycleObserverRegisterDelegate()..lifecycle = _lifecycle;
-
-  @override
-  Lifecycle get lifecycle => _lifecycle;
-
-  @protected
-  LifecycleRegistry get lifecycleRegistry => _lifecycle;
-
-  bool _isInactivate = false;
-
-  bool get customDispatchEvent => false;
-
-  @override
-  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
-
-  @override
-  void addLifecycleObserver(LifecycleObserver observer,
-      {LifecycleState? startWith, bool fullCycle = true}) {
-    _delegate.addLifecycleObserver(observer,
-        startWith: startWith, fullCycle: fullCycle);
-  }
-
-  @override
-  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
-      _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
-
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
-      _delegate.findLifecycleObserver<LO>();
-
-  @override
-  void deactivate() {
-    _isInactivate = false;
-    if (customDispatchEvent) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
-    }
-    super.deactivate();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _isInactivate = true;
-    if (!customDispatchEvent) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
-      WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
-    }
-  }
-
-  void _defDispatchResume(_) {
-    if (_isInactivate &&
-        !customDispatchEvent &&
-        currentLifecycleState > LifecycleState.destroyed) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => buildReturn;
-
-  Widget get buildReturn => _lifecycleOwnerBuildReturn;
-}
-
-mixin LifecycleObserverRegisterMixin<W extends StatefulWidget> on State<W>
-    implements LifecycleObserverRegister {
-  final _LifecycleObserverRegisterDelegate _delegate =
-      _LifecycleObserverRegisterDelegate();
-
-  @override
-  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
-
-  @override
-  Lifecycle? get lifecycle => _delegate.lifecycle;
-
-  @override
-  void addLifecycleObserver(LifecycleObserver observer,
-      {LifecycleState? startWith, bool fullCycle = true}) {
-    _delegate.addLifecycleObserver(observer,
-        startWith: startWith, fullCycle: fullCycle);
-  }
-
-  @override
-  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
-      _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
-
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
-      _delegate.findLifecycleObserver<LO>();
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final p = context.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-    _delegate.lifecycle = p?.lifecycle;
-  }
-
-  @override
-  void dispose() {
-    _delegate.dispose();
-    super.dispose();
   }
 }

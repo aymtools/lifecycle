@@ -1,30 +1,5 @@
 part of 'lifecycle_navigator_observer.dart';
 
-class LifecycleRoutePage extends LifecycleOwnerWidget {
-  final Route? route;
-
-  const LifecycleRoutePage({this.route, super.key, required super.child});
-
-  @override
-  LifecycleRoutePageState<LifecycleRoutePage> createState() =>
-      _LifecycleRoutePageState();
-}
-
-class _LifecycleRoutePageState extends State<LifecycleRoutePage>
-    with
-        AutomaticKeepAliveClientMixin,
-        LifecycleOwnerStateMixin,
-        LifecycleRoutePageState {
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return buildReturn;
-  }
-}
-
 mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
     on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   LifecycleNavigatorObserver? _observer;
@@ -83,3 +58,27 @@ mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
   }
 }
 
+class LifecycleRoutePage extends LifecycleOwnerWidget {
+  final Route? route;
+
+  const LifecycleRoutePage({this.route, super.key, required super.child});
+
+  @override
+  LifecycleRoutePageState<LifecycleRoutePage> createState() =>
+      _LifecycleRoutePageState();
+}
+
+class _LifecycleRoutePageState extends State<LifecycleRoutePage>
+    with
+        AutomaticKeepAliveClientMixin,
+        LifecycleOwnerStateMixin,
+        LifecycleRoutePageState {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return buildReturn;
+  }
+}

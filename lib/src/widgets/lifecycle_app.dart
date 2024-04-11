@@ -1,17 +1,5 @@
+import 'package:anlifecycle/anlifecycle.dart';
 import 'package:flutter/widgets.dart';
-
-import '../core/lifecycle.dart';
-import '../core/lifecycle_register.dart';
-
-class LifecycleApp extends LifecycleOwnerWidget {
-  const LifecycleApp({super.key, required super.child});
-
-  @override
-  LifecycleAppState<LifecycleApp> createState() => _LifecycleAppState();
-}
-
-class _LifecycleAppState extends State<LifecycleApp>
-    with LifecycleOwnerStateMixin, LifecycleAppState {}
 
 class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
   final LifecycleRegistry _lifecycleRegistry;
@@ -55,3 +43,15 @@ mixin LifecycleAppState<T extends LifecycleOwnerWidget>
     super.dispose();
   }
 }
+
+class LifecycleApp extends LifecycleOwnerWidget {
+  const LifecycleApp({super.key, required super.child});
+
+  @override
+  LifecycleAppState<LifecycleApp> createState() => _LifecycleAppState();
+}
+
+abstract base class LifecycleAppBaseState<LOW extends LifecycleApp>
+    extends State<LOW> with LifecycleOwnerStateMixin, LifecycleAppState {}
+
+final class _LifecycleAppState extends LifecycleAppBaseState<LifecycleApp> {}

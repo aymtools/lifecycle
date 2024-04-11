@@ -1,7 +1,15 @@
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:flutter/widgets.dart';
+
 part 'lifecycle_callback.dart';
+
+part 'lifecycle_registry.dart';
+
+part 'lifecycle_provider.dart';
+
+part 'lifecycle_registry_mixin.dart';
 
 ///生命周期的事件
 enum LifecycleEvent { create, start, resume, pause, stop, destroy }
@@ -381,7 +389,8 @@ class _StateObserverDispatcher extends _ObserverDispatcher {
 
   @override
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
-    _observer.onStateChange(owner, LifecycleRegistry._getStateAfter(event));
+    _observer.onStateChange(
+        owner, LifecycleRegistry._getStateAfter(event));
     _eventObserver?.dispatchEvent(owner, event);
   }
 }

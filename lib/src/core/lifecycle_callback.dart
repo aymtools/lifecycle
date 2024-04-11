@@ -9,7 +9,7 @@ extension LifecycleCallback on Lifecycle {
       final callbacks =
           Set<LifecycleAttachCallback>.of(_attachCallbacks[this]!);
       for (var c in callbacks) {
-        c.onAttach(this, owner);
+        c.onOwnerAttach(this, owner);
       }
     }
   }
@@ -18,7 +18,7 @@ extension LifecycleCallback on Lifecycle {
     if (_detachCallback.containsKey(this)) {
       final callbacks = Set<LifecycleDetachCallback>.of(_detachCallback[this]!);
       for (var c in callbacks) {
-        c.onDetach(this, owner);
+        c.onOwnerDetach(this, owner);
       }
     }
   }
@@ -52,9 +52,13 @@ extension LifecycleCallback on Lifecycle {
 }
 
 abstract interface class LifecycleAttachCallback {
-  void onAttach(Lifecycle parent, LifecycleOwner childOwner);
+  void onOwnerAttach(Lifecycle parent, LifecycleOwner childOwner);
+
+  void onRegistryAttach(Lifecycle parent, LifecycleObserverRegistry childOwner);
 }
 
 abstract interface class LifecycleDetachCallback {
-  void onDetach(Lifecycle parent, LifecycleOwner childOwner);
+  void onOwnerDetach(Lifecycle parent, LifecycleOwner childOwner);
+
+  void onRegistryDetach(Lifecycle parent, LifecycleOwner childOwner);
 }

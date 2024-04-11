@@ -1,8 +1,4 @@
-import 'package:flutter/widgets.dart';
-
-import 'lifecycle.dart';
-
-part 'lifecycle_provider.dart';
+part of 'lifecycle.dart';
 
 class _ObserverS {
   final LifecycleState startWith;
@@ -14,8 +10,8 @@ class _ObserverS {
       [this.startWith = LifecycleState.destroyed, this.fullCycle = false]);
 }
 
-abstract interface class LifecycleObserverRegister {
-  Lifecycle? get lifecycle;
+abstract interface class LifecycleObserverRegistry {
+  Lifecycle get lifecycle;
 
   LifecycleState get currentLifecycleState;
 
@@ -28,21 +24,14 @@ abstract interface class LifecycleObserverRegister {
   LO? findLifecycleObserver<LO extends LifecycleObserver>();
 }
 
-extension LifecycleObserverRegisterSupport on LifecycleObserverRegister {
-  void registerLifecycleObserver(LifecycleObserver observer,
-          {LifecycleState? startWith, bool fullCycle = true}) =>
-      addLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle);
-}
-
-class _LifecycleObserverRegisterDelegate extends LifecycleObserverRegister {
+class _LifecycleObserverRegistryDelegate extends LifecycleObserverRegistry {
   Lifecycle? _lifecycle;
   final Map<LifecycleObserver, _ObserverS> _observers = {};
 
   LifecycleState _currState = LifecycleState.initialized;
 
   @override
-  Lifecycle? get lifecycle => _lifecycle;
+  Lifecycle get lifecycle => _lifecycle!;
 
   @override
   LifecycleState get currentLifecycleState =>
@@ -105,6 +94,8 @@ class _LifecycleObserverRegisterDelegate extends LifecycleObserverRegister {
       e.value.lifecycle?.removeObserver(
           e.key, e.value.fullCycle == true ? LifecycleState.destroyed : null);
     }
+    _observers.clear();
+    _lifecycle = null;
   }
 
   @override
@@ -112,7 +103,7 @@ class _LifecycleObserverRegisterDelegate extends LifecycleObserverRegister {
     final os = _observers.keys.whereType<LO>();
     LO? o = os.isEmpty ? null : os.first;
     if (o != null) return o;
-    var l = lifecycle;
+    Lifecycle? l = lifecycle;
     while (l != null && l is LifecycleRegistry) {
       var owner = l.provider;
       if (owner is LifecycleOwnerStateMixin) {
