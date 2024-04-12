@@ -5,7 +5,7 @@ const _lifecycleOwnerBuildReturn = SizedBox.shrink();
 mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     implements LifecycleObserverRegistry {
   late final _LifecycleObserverRegistryDelegate _delegate = () {
-    final delegate = _LifecycleObserverRegistryDelegate();
+    final delegate = _LifecycleObserverRegistryDelegate(target: this);
     assert(mounted);
     context.visitAncestorElements((element) {
       final p =
@@ -37,6 +37,24 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
       _delegate.findLifecycleObserver<LO>();
 
+  Set<void Function(W widget, W oldWidget)>? _onDidUpdateWidget;
+
+  void addOnDidUpdateWidget(void Function(W widget, W oldWidget) listener) {
+    if (_onDidUpdateWidget == null) {}
+    _onDidUpdateWidget!.add(listener);
+  }
+
+  @override
+  void didUpdateWidget(covariant W oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_onDidUpdateWidget != null && _onDidUpdateWidget!.isNotEmpty) {
+      final listeners = List.of(_onDidUpdateWidget!, growable: false);
+      for (var l in listeners) {
+        l(widget, oldWidget);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -52,17 +70,19 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   @override
   void dispose() {
     _delegate.dispose();
+    _onDidUpdateWidget?.clear();
     super.dispose();
+    _onDidUpdateWidget = null;
   }
 }
 
-mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
-    implements LifecycleOwner, LifecycleObserverRegistryMixin<T> {
+mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
+    implements LifecycleOwner, LifecycleObserverRegistryMixin<LOW> {
   late final LifecycleRegistry _lifecycle;
 
   @override
   late final _LifecycleObserverRegistryDelegate _delegate =
-      _LifecycleObserverRegistryDelegate()..lifecycle = _lifecycle;
+      _LifecycleObserverRegistryDelegate(target: this)..lifecycle = _lifecycle;
 
   @override
   Lifecycle get lifecycle => _lifecycle;
@@ -93,6 +113,26 @@ mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
       _delegate.findLifecycleObserver<LO>();
 
   @override
+  Set<void Function(LOW widget, LOW oldWidget)>? _onDidUpdateWidget;
+
+  @override
+  void addOnDidUpdateWidget(void Function(LOW widget, LOW oldWidget) listener) {
+    if (_onDidUpdateWidget == null) {}
+    _onDidUpdateWidget!.add(listener);
+  }
+
+  @override
+  void didUpdateWidget(covariant LOW oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_onDidUpdateWidget != null && _onDidUpdateWidget!.isNotEmpty) {
+      final listeners = List.of(_onDidUpdateWidget!, growable: false);
+      for (var l in listeners) {
+        l(widget, oldWidget);
+      }
+    }
+  }
+
+  @override
   void deactivate() {
     _isInactivate = false;
     if (customDispatchEvent) {
@@ -117,6 +157,13 @@ mixin LifecycleOwnerStateMixin<T extends LifecycleOwnerWidget> on State<T>
         currentLifecycleState > LifecycleState.destroyed) {
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
     }
+  }
+
+  @override
+  void dispose() {
+    _onDidUpdateWidget?.clear();
+    super.dispose();
+    _onDidUpdateWidget = null;
   }
 
   @override

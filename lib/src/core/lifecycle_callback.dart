@@ -4,21 +4,27 @@ final Map<Lifecycle, Set<LifecycleAttachCallback>> _attachCallbacks = {};
 final Map<Lifecycle, Set<LifecycleDetachCallback>> _detachCallback = {};
 
 extension LifecycleCallback on Lifecycle {
-  void onAttach(LifecycleOwner owner) {
+  void onAttach(LifecycleObserverRegistry registry) {
     if (_attachCallbacks.containsKey(this)) {
       final callbacks =
           Set<LifecycleAttachCallback>.of(_attachCallbacks[this]!);
       for (var c in callbacks) {
-        c.onOwnerAttach(this, owner);
+        c.onRegistryAttach(this, registry);
+        if (registry is LifecycleOwner) {
+          c.onOwnerAttach(this, registry as LifecycleOwner);
+        }
       }
     }
   }
 
-  void onDetach(LifecycleOwner owner) {
+  void onDetach(LifecycleObserverRegistry registry) {
     if (_detachCallback.containsKey(this)) {
       final callbacks = Set<LifecycleDetachCallback>.of(_detachCallback[this]!);
       for (var c in callbacks) {
-        c.onOwnerDetach(this, owner);
+        c.onRegistryDetach(this, registry);
+        if (registry is LifecycleOwner) {
+          c.onOwnerDetach(this, registry as LifecycleOwner);
+        }
       }
     }
   }
@@ -54,11 +60,13 @@ extension LifecycleCallback on Lifecycle {
 abstract class LifecycleAttachCallback {
   void onOwnerAttach(Lifecycle parent, LifecycleOwner childOwner);
 
-  void onRegistryAttach(Lifecycle parent, LifecycleObserverRegistry childOwner);
+  void onRegistryAttach(
+      Lifecycle parent, LifecycleObserverRegistry childRegistry);
 }
 
 abstract class LifecycleDetachCallback {
   void onOwnerDetach(Lifecycle parent, LifecycleOwner childOwner);
 
-  void onRegistryDetach(Lifecycle parent, LifecycleOwner childOwner);
+  void onRegistryDetach(
+      Lifecycle parent, LifecycleObserverRegistry childRegistry);
 }

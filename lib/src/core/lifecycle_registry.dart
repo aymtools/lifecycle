@@ -24,11 +24,17 @@ abstract class LifecycleObserverRegistry {
   LO? findLifecycleObserver<LO extends LifecycleObserver>();
 }
 
-class _LifecycleObserverRegistryDelegate extends LifecycleObserverRegistry {
+class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
+  final LifecycleObserverRegistry _target;
+
   Lifecycle? _lifecycle;
   final Map<LifecycleObserver, _ObserverS> _observers = {};
 
   LifecycleState _currState = LifecycleState.initialized;
+
+  _LifecycleObserverRegistryDelegate(
+      {required LifecycleObserverRegistry target})
+      : _target = target;
 
   @override
   Lifecycle get lifecycle => _lifecycle!;
@@ -41,6 +47,7 @@ class _LifecycleObserverRegistryDelegate extends LifecycleObserverRegistry {
     if (lifecycle != _lifecycle) {
       LifecycleState? currState;
       if (_lifecycle != null) {
+        _lifecycle!.onDetach(_target);
         currState = _lifecycle!.currentState;
         final entries = [..._observers.entries];
         for (var obs in entries) {
@@ -50,6 +57,8 @@ class _LifecycleObserverRegistryDelegate extends LifecycleObserverRegistry {
       }
       _lifecycle = lifecycle;
       if (_lifecycle != null) {
+        _lifecycle!.onAttach(_target);
+
         final entries = [..._observers.entries];
         for (var obs in entries) {
           obs.value.lifecycle = _lifecycle;
@@ -89,6 +98,9 @@ class _LifecycleObserverRegistryDelegate extends LifecycleObserverRegistry {
 
   void dispose() {
     _currState = LifecycleState.destroyed;
+
+    _lifecycle?.onDetach(_target);
+
     final entries = [..._observers.entries];
     for (var e in entries) {
       e.value.lifecycle?.removeObserver(

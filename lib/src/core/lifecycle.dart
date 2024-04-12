@@ -314,14 +314,12 @@ class _LifecycleParentStateChangeObserver
     if (_parentLifecycle == parent) {
       return;
     }
-    _parentLifecycle?.onDetach(childLifecycle);
     if (_parentLifecycle != null) {
       childLifecycle.lifecycle.removeObserver(this);
       _parentLifecycle!.removeObserver(this);
     }
 
     _parentLifecycle = parent;
-    _parentLifecycle?.onAttach(childLifecycle);
 
     if (_parentLifecycle != null) {
       childLifecycle.lifecycle.addObserver(this);
@@ -337,8 +335,6 @@ class _LifecycleParentStateChangeObserver
     if (state == LifecycleState.destroyed) {
       childLifecycle.lifecycle.removeObserver(this);
       _parentLifecycle?.removeObserver(this);
-
-      _parentLifecycle?.onDetach(childLifecycle);
     }
   }
 }
