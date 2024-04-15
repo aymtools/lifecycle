@@ -16,7 +16,7 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
         _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
         break;
       case AppLifecycleState.paused:
-      case AppLifecycleState.hidden:
+      // case AppLifecycleState.hidden:
         _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
         break;
       case AppLifecycleState.detached:
