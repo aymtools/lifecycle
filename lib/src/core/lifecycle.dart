@@ -178,9 +178,10 @@ class LifecycleRegistry extends Lifecycle {
     if (_parentLifecycle == parent) {
       return;
     }
-
+    _parentLifecycle?.onDetachOwner(provider);
     _maxStateChangeObserver.parentLifecycle = parent;
     _parentLifecycle = parent;
+    _parentLifecycle?.onAttachOwner(provider);
 
     if (_parentLifecycle == null) {
       _handleMaxLifecycleStateChange(LifecycleState.resumed);

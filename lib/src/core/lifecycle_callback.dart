@@ -17,6 +17,19 @@ extension LifecycleCallback on Lifecycle {
     }
   }
 
+  void onAttachOwner(LifecycleOwner owner) {
+    if (_attachCallbacks.containsKey(this)) {
+      final callbacks =
+          Set<LifecycleAttachCallback>.of(_attachCallbacks[this]!);
+      for (var c in callbacks) {
+        c.onOwnerAttach(this, owner);
+        if (owner is LifecycleObserverRegistry) {
+          c.onRegistryAttach(this, owner as LifecycleObserverRegistry);
+        }
+      }
+    }
+  }
+
   void onDetach(LifecycleObserverRegistry registry) {
     if (_detachCallback.containsKey(this)) {
       final callbacks = Set<LifecycleDetachCallback>.of(_detachCallback[this]!);
@@ -24,6 +37,18 @@ extension LifecycleCallback on Lifecycle {
         c.onRegistryDetach(this, registry);
         if (registry is LifecycleOwner) {
           c.onOwnerDetach(this, registry as LifecycleOwner);
+        }
+      }
+    }
+  }
+
+  void onDetachOwner(LifecycleOwner owner) {
+    if (_detachCallback.containsKey(this)) {
+      final callbacks = Set<LifecycleDetachCallback>.of(_detachCallback[this]!);
+      for (var c in callbacks) {
+        c.onOwnerDetach(this, owner);
+        if (owner is LifecycleObserverRegistry) {
+          c.onRegistryDetach(this, owner as LifecycleObserverRegistry);
         }
       }
     }
