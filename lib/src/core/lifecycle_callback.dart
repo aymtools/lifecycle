@@ -1,97 +1,143 @@
 part of 'lifecycle.dart';
 
-final Map<Lifecycle, Set<LifecycleAttachCallback>> _attachCallbacks = {};
-final Map<Lifecycle, Set<LifecycleDetachCallback>> _detachCallback = {};
-
-extension LifecycleCallback on Lifecycle {
-  void onAttach(LifecycleObserverRegistry registry) {
-    if (_attachCallbacks.containsKey(this)) {
-      final callbacks =
-          Set<LifecycleAttachCallback>.of(_attachCallbacks[this]!);
-      for (var c in callbacks) {
-        c.onRegistryAttach(this, registry);
-        if (registry is LifecycleOwner) {
-          c.onOwnerAttach(this, registry as LifecycleOwner);
-        }
-      }
-    }
-  }
-
-  void onAttachOwner(LifecycleOwner owner) {
-    if (_attachCallbacks.containsKey(this)) {
-      final callbacks =
-          Set<LifecycleAttachCallback>.of(_attachCallbacks[this]!);
-      for (var c in callbacks) {
-        c.onOwnerAttach(this, owner);
-        if (owner is LifecycleObserverRegistry) {
-          c.onRegistryAttach(this, owner as LifecycleObserverRegistry);
-        }
-      }
-    }
-  }
-
-  void onDetach(LifecycleObserverRegistry registry) {
-    if (_detachCallback.containsKey(this)) {
-      final callbacks = Set<LifecycleDetachCallback>.of(_detachCallback[this]!);
-      for (var c in callbacks) {
-        c.onRegistryDetach(this, registry);
-        if (registry is LifecycleOwner) {
-          c.onOwnerDetach(this, registry as LifecycleOwner);
-        }
-      }
-    }
-  }
-
-  void onDetachOwner(LifecycleOwner owner) {
-    if (_detachCallback.containsKey(this)) {
-      final callbacks = Set<LifecycleDetachCallback>.of(_detachCallback[this]!);
-      for (var c in callbacks) {
-        c.onOwnerDetach(this, owner);
-        if (owner is LifecycleObserverRegistry) {
-          c.onRegistryDetach(this, owner as LifecycleObserverRegistry);
-        }
-      }
-    }
-  }
-
-  void addLifecycleAttachCallbacks(LifecycleAttachCallback callback) {
-    assert(currentState > LifecycleState.destroyed,
-        'Must add after the LifecycleState.initialized.');
-
-    var callbacks = _attachCallbacks[this];
-    if (callbacks == null) {
-      callbacks = {};
-      _attachCallbacks[this] = callbacks;
-      addObserver(LifecycleObserver.onEventDestroy(
-          (owner) => _attachCallbacks.remove(owner.lifecycle)));
-    }
-    callbacks.add(callback);
-  }
-
-  void addLifecycleDetachCallbacks(LifecycleDetachCallback callback) {
-    assert(currentState > LifecycleState.destroyed,
-        'Must add after the LifecycleState.initialized.');
-    var callbacks = _detachCallback[this];
-    if (callbacks == null) {
-      callbacks = {};
-      _detachCallback[this] = callbacks;
-      addObserver(LifecycleObserver.onEventDestroy(
-          (owner) => _detachCallback.remove(owner.lifecycle)));
-    }
-    callbacks.add(callback);
-  }
-}
-
 abstract class LifecycleAttachCallback {
-  void onOwnerAttach(Lifecycle parent, LifecycleOwner childOwner);
+  void onOwnerAttach(Lifecycle? parent, LifecycleOwner childOwner);
 
   void onRegistryAttach(
       Lifecycle parent, LifecycleObserverRegistry childRegistry);
 }
 
 abstract class LifecycleDetachCallback {
-  void onOwnerDetach(Lifecycle parent, LifecycleOwner childOwner);
+  void onOwnerDetach(Lifecycle? parent, LifecycleOwner childOwner);
 
   void onRegistryDetach(
       Lifecycle parent, LifecycleObserverRegistry childRegistry);
+}
+
+abstract class LifecycleCallback
+    implements LifecycleAttachCallback, LifecycleDetachCallback {}
+
+///全局的lifecycle互相绑定回调处理
+class LifecycleCallbacks {
+  LifecycleCallbacks._();
+
+  final Set<LifecycleCallback> _callbacks = {};
+
+  static final LifecycleCallbacks _instance = LifecycleCallbacks._();
+
+  static LifecycleCallbacks get instance => _instance;
+
+  void addCallback(LifecycleCallback callback) => _callbacks.add(callback);
+
+  void _onAttachRegistry(Lifecycle parent, LifecycleObserverRegistry registry) {
+    final callbacks = Set<LifecycleCallback>.of(_callbacks);
+    for (var c in callbacks) {
+      c.onRegistryAttach(parent, registry);
+      if (registry is LifecycleOwner) {
+        c.onOwnerAttach(parent, registry as LifecycleOwner);
+      }
+    }
+  }
+
+  void _onAttachOwner(Lifecycle? parent, LifecycleOwner owner) {
+    final callbacks = Set<LifecycleCallback>.of(_callbacks);
+    for (var c in callbacks) {
+      c.onOwnerAttach(parent, owner);
+      if (owner is LifecycleObserverRegistry && parent != null) {
+        c.onRegistryAttach(parent, owner as LifecycleObserverRegistry);
+      }
+    }
+  }
+
+  void _onDetachRegistry(Lifecycle parent, LifecycleObserverRegistry registry) {
+    final callbacks = Set<LifecycleCallback>.of(_callbacks);
+    for (var c in callbacks) {
+      c.onRegistryDetach(parent, registry);
+      if (registry is LifecycleOwner) {
+        c.onOwnerDetach(parent, registry as LifecycleOwner);
+      }
+    }
+  }
+
+  void _onDetachOwner(Lifecycle? parent, LifecycleOwner owner) {
+    final callbacks = Set<LifecycleCallback>.of(_callbacks);
+    for (var c in callbacks) {
+      c.onOwnerDetach(parent, owner);
+      if (owner is LifecycleObserverRegistry && parent != null) {
+        c.onRegistryDetach(parent, owner as LifecycleObserverRegistry);
+      }
+    }
+  }
+}
+
+class _TargetLifecycleCallback implements LifecycleCallback {
+  final Set<LifecycleAttachCallback> _attachCallbacks = {};
+  final Set<LifecycleDetachCallback> _detachCallback = {};
+  final LifecycleOwner owner;
+
+  _TargetLifecycleCallback({required this.owner}) {
+    LifecycleCallbacks.instance.addCallback(this);
+    owner.lifecycle.addObserver(LifecycleObserver.onEventDestroy(
+        (owner) => _targetCallback.remove(owner)));
+  }
+
+  @override
+  void onOwnerAttach(Lifecycle? parent, LifecycleOwner childOwner) {
+    if (parent != owner.lifecycle) return;
+    final callbacks = Set.of(_attachCallbacks);
+    for (var callback in callbacks) {
+      callback.onOwnerAttach(parent, childOwner);
+    }
+  }
+
+  @override
+  void onOwnerDetach(Lifecycle? parent, LifecycleOwner childOwner) {
+    if (parent != owner.lifecycle) return;
+    final callbacks = Set.of(_detachCallback);
+    for (var callback in callbacks) {
+      callback.onOwnerDetach(parent, childOwner);
+    }
+  }
+
+  @override
+  void onRegistryAttach(
+      Lifecycle parent, LifecycleObserverRegistry childRegistry) {
+    if (parent != owner.lifecycle) return;
+    final callbacks = Set.of(_attachCallbacks);
+    for (var callback in callbacks) {
+      callback.onRegistryAttach(parent, childRegistry);
+    }
+  }
+
+  @override
+  void onRegistryDetach(
+      Lifecycle parent, LifecycleObserverRegistry childRegistry) {
+    if (parent != owner.lifecycle) return;
+    final callbacks = Set.of(_detachCallback);
+    for (var callback in callbacks) {
+      callback.onRegistryDetach(parent, childRegistry);
+    }
+  }
+}
+
+final Map<LifecycleOwner, _TargetLifecycleCallback> _targetCallback = {};
+
+extension LifecycleCallbackManager on LifecycleOwner {
+  void addLifecycleAttachCallbacks(LifecycleAttachCallback callback) {
+    assert(lifecycle.currentState > LifecycleState.destroyed,
+        'Must add after the LifecycleState.initialized.');
+
+    var callbacks = _targetCallback.putIfAbsent(
+        this, () => _TargetLifecycleCallback(owner: this));
+    callbacks._attachCallbacks.add(callback);
+  }
+
+  void addLifecycleDetachCallbacks(LifecycleDetachCallback callback) {
+    assert(lifecycle.currentState > LifecycleState.destroyed,
+        'Must add after the LifecycleState.initialized.');
+
+    var callbacks = _targetCallback.putIfAbsent(
+        this, () => _TargetLifecycleCallback(owner: this));
+    callbacks._detachCallback.add(callback);
+  }
 }

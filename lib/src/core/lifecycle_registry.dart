@@ -47,7 +47,6 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
     if (lifecycle != _lifecycle) {
       LifecycleState? currState;
       if (_lifecycle != null) {
-        _lifecycle!.onDetach(_target);
         currState = _lifecycle!.currentState;
         final entries = [..._observers.entries];
         for (var obs in entries) {
@@ -57,8 +56,6 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
       }
       _lifecycle = lifecycle;
       if (_lifecycle != null) {
-        _lifecycle!.onAttach(_target);
-
         final entries = [..._observers.entries];
         for (var obs in entries) {
           obs.value.lifecycle = _lifecycle;
@@ -98,8 +95,6 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
 
   void dispose() {
     _currState = LifecycleState.destroyed;
-
-    _lifecycle?.onDetach(_target);
 
     final entries = [..._observers.entries];
     for (var e in entries) {

@@ -10,7 +10,11 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     context.visitAncestorElements((element) {
       final p =
           element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-      delegate.lifecycle = p?.lifecycle;
+      final lifecycle = p?.lifecycle;
+      delegate.lifecycle = lifecycle;
+      if (lifecycle != null) {
+        LifecycleCallbacks.instance._onAttachRegistry(lifecycle, this);
+      }
       return false;
     });
     return delegate;
@@ -64,11 +68,26 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final p = context.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-    _delegate.lifecycle = p?.lifecycle;
+    final lifecycle = p?.lifecycle;
+    final last = _delegate._lifecycle;
+    if (lifecycle != last) {
+      if (last != null) {
+        LifecycleCallbacks.instance._onDetachRegistry(last, this);
+      }
+      _delegate.lifecycle = lifecycle;
+      if (lifecycle != null) {
+        LifecycleCallbacks.instance._onAttachRegistry(lifecycle, this);
+      }
+    }
   }
 
   @override
   void dispose() {
+    if (_delegate._lifecycle != null) {
+      LifecycleCallbacks.instance
+          ._onDetachRegistry(_delegate._lifecycle!, this);
+    }
+
     _delegate.dispose();
     _onDidUpdateWidget?.clear();
     super.dispose();
