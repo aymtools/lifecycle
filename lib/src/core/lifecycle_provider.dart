@@ -1,4 +1,6 @@
-part of 'lifecycle.dart';
+part of 'lifecycle_registry.dart';
+
+class LifecycleScope {}
 
 abstract class LifecycleOwnerWidget extends StatefulWidget {
   final Widget child;
@@ -31,8 +33,7 @@ class _EffectiveLifecycle extends InheritedWidget {
 }
 
 class _LifecycleOwnerElement extends StatefulElement {
-  late final LifecycleRegistry _lifecycle =
-      LifecycleRegistry(lifecycleOwner);
+  late final LifecycleRegistry _lifecycle = LifecycleRegistry(lifecycleOwner);
 
   @override
   LifecycleOwnerWidget get widget => super.widget as LifecycleOwnerWidget;
@@ -73,6 +74,8 @@ class _LifecycleOwnerElement extends StatefulElement {
         ?.lifecycle;
     _lifecycle.bindParentLifecycle(parentLifecycle);
 
+    LifecycleCallbacks.instance._onAttach(parentLifecycle, lifecycleOwner);
+
     //在这里会触发首次的state.didChangeDependencies 需要纠结 start事件的处理
     super.mount(parent, newSlot);
 
@@ -84,13 +87,26 @@ class _LifecycleOwnerElement extends StatefulElement {
     final parentLifecycle =
         dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()?.lifecycle;
     _lifecycle.bindParentLifecycle(parentLifecycle);
+    final lifecycle = parentLifecycle;
+    final last = _lifecycle.parent;
+    if (lifecycle != last) {
+      if (last != null) {
+        LifecycleCallbacks.instance._onDetach(last, lifecycleOwner);
+      }
+      _lifecycle.bindParentLifecycle(parentLifecycle);
+      LifecycleCallbacks.instance._onAttach(lifecycle, lifecycleOwner);
+    }
     super.didChangeDependencies();
   }
 
   @override
   void unmount() {
     _lifecycle.handleLifecycleEvent(LifecycleEvent.destroy);
-    _lifecycle.bindParentLifecycle(null);
+    if (_lifecycle.parent != null) {
+      LifecycleCallbacks.instance
+          ._onDetach(_lifecycle.parent!, lifecycleOwner);
+      _lifecycle.bindParentLifecycle(null);
+    }
     super.unmount();
     _lifecycle.clearObserver();
   }

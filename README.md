@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
 ```
 
 #### 1.2 Use LifecycleNavigatorObserver.hookMode() to register routing event changes.
-Note: If you use LifecycleNavigatorObserver, you must use LifecycleRoutePage to wrap the PageContent to distribute lifecycle events.
+Note: If you use LifecycleNavigatorObserver, you must use LifecycleRoute to wrap the PageContent to distribute lifecycle events.
 
 ```dart
  class MyApp extends StatelessWidget {
@@ -88,7 +88,7 @@ Note: If you use LifecycleNavigatorObserver, you must use LifecycleRoutePage to 
           primarySwatch: Colors.blue,
         ),
         //Use LifecycleNavigatorObserver.hookMode() to register routing event changes
-        //If you use LifecycleNavigatorObserver, you must use LifecycleRoutePage to wrap the PageContent to distribute lifecycle events.
+        //If you use LifecycleNavigatorObserver, you must use LifecycleRoute to wrap the PageContent to distribute lifecycle events.
         navigatorObservers: [
           LifecycleNavigatorObserver.hookMode(),
         ],

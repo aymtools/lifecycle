@@ -1,6 +1,6 @@
 part of 'lifecycle_navigator_observer.dart';
 
-mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
+mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   LifecycleNavigatorObserver? _observer;
 
@@ -58,21 +58,21 @@ mixin LifecycleRoutePageState<T extends LifecycleRoutePage>
   }
 }
 
-class LifecycleRoutePage extends LifecycleOwnerWidget {
+class LifecycleRouteOwner extends LifecycleOwnerWidget {
   final Route? route;
 
-  const LifecycleRoutePage({this.route, super.key, required super.child});
+  const LifecycleRouteOwner({this.route, super.key, required super.child});
 
   @override
-  LifecycleRoutePageState<LifecycleRoutePage> createState() =>
-      _LifecycleRoutePageState();
+  LifecycleRouteOwnerState<LifecycleRouteOwner> createState() =>
+      _LifecycleRouteState();
 }
 
-class _LifecycleRoutePageState extends State<LifecycleRoutePage>
+class _LifecycleRouteState extends State<LifecycleRouteOwner>
     with
         AutomaticKeepAliveClientMixin,
         LifecycleOwnerStateMixin,
-        LifecycleRoutePageState {
+        LifecycleRouteOwnerState {
   @override
   bool get wantKeepAlive => true;
 
@@ -82,3 +82,12 @@ class _LifecycleRoutePageState extends State<LifecycleRoutePage>
     return buildReturn;
   }
 }
+
+abstract class LifecycleRouteOwnerBaseState<LOW extends LifecycleRouteOwner>
+    extends State<LOW>
+    with LifecycleOwnerStateMixin, LifecycleRouteOwnerState {}
+
+typedef LifecycleRoutePage = LifecycleRouteOwner;
+
+typedef LifecycleRoutePageState<T extends LifecycleRouteOwner>
+    = LifecycleRouteOwnerState<T>;

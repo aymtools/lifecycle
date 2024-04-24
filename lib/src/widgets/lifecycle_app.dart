@@ -16,7 +16,7 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
         _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
         break;
       case AppLifecycleState.paused:
-      // case AppLifecycleState.hidden:
+        // case AppLifecycleState.hidden:
         _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
         break;
       case AppLifecycleState.detached:
@@ -26,7 +26,7 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
   }
 }
 
-mixin LifecycleAppState<T extends LifecycleOwnerWidget>
+mixin LifecycleAppOwnerState<T extends LifecycleOwnerWidget>
     on LifecycleOwnerStateMixin<T> {
   late final _NativeAppLifecycleStateObserver _nativeAppLifecycleStateObserver =
       _NativeAppLifecycleStateObserver(lifecycleRegistry);
@@ -44,14 +44,22 @@ mixin LifecycleAppState<T extends LifecycleOwnerWidget>
   }
 }
 
-class LifecycleApp extends LifecycleOwnerWidget {
-  const LifecycleApp({super.key, required super.child});
+class LifecycleAppOwner extends LifecycleOwnerWidget {
+  const LifecycleAppOwner({super.key, required super.child});
 
   @override
-  LifecycleAppState<LifecycleApp> createState() => _LifecycleAppState();
+  LifecycleAppOwnerState<LifecycleAppOwner> createState() =>
+      _LifecycleAppState();
 }
 
-abstract class LifecycleAppBaseState<LOW extends LifecycleApp>
-    extends State<LOW> with LifecycleOwnerStateMixin, LifecycleAppState {}
+abstract class LifecycleAppOwnerBaseState<LOW extends LifecycleAppOwner>
+    extends State<LOW> with LifecycleOwnerStateMixin, LifecycleAppOwnerState {}
 
-class _LifecycleAppState extends LifecycleAppBaseState<LifecycleApp> {}
+class _LifecycleAppState
+    extends LifecycleAppOwnerBaseState<LifecycleAppOwner> {}
+
+typedef LifecycleApp = LifecycleAppOwner;
+typedef LifecycleAppState<T extends LifecycleOwnerWidget>
+    = LifecycleAppOwnerState<T>;
+typedef LifecycleAppBaseState<LOW extends LifecycleAppOwner>
+    = LifecycleAppOwnerBaseState<LOW>;

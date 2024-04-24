@@ -1,4 +1,12 @@
-part of 'lifecycle.dart';
+import 'package:flutter/widgets.dart';
+
+import 'lifecycle.dart';
+
+part 'lifecycle_callback.dart';
+
+part 'lifecycle_provider.dart';
+
+part 'lifecycle_registry_mixin.dart';
 
 class _ObserverS {
   final LifecycleState startWith;

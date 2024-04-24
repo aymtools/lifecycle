@@ -1,16 +1,6 @@
 import 'dart:collection';
 import 'dart:math';
 
-import 'package:flutter/widgets.dart';
-
-part 'lifecycle_callback.dart';
-
-part 'lifecycle_registry.dart';
-
-part 'lifecycle_provider.dart';
-
-part 'lifecycle_registry_mixin.dart';
-
 ///生命周期的事件
 enum LifecycleEvent { create, start, resume, pause, stop, destroy }
 
@@ -178,10 +168,8 @@ class LifecycleRegistry extends Lifecycle {
     if (_parentLifecycle == parent) {
       return;
     }
-    LifecycleCallbacks.instance._onDetachOwner(_parentLifecycle, provider);
     _maxStateChangeObserver.parentLifecycle = parent;
     _parentLifecycle = parent;
-    LifecycleCallbacks.instance._onAttachOwner(_parentLifecycle, provider);
 
     if (_parentLifecycle == null) {
       _handleMaxLifecycleStateChange(LifecycleState.resumed);

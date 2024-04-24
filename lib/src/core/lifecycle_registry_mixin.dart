@@ -1,4 +1,4 @@
-part of 'lifecycle.dart';
+part of 'lifecycle_registry.dart';
 
 const _lifecycleOwnerBuildReturn = SizedBox.shrink();
 
@@ -13,7 +13,7 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
       final lifecycle = p?.lifecycle;
       delegate.lifecycle = lifecycle;
       if (lifecycle != null) {
-        LifecycleCallbacks.instance._onAttachRegistry(lifecycle, this);
+        LifecycleCallbacks.instance._onAttach(lifecycle, this);
       }
       return false;
     });
@@ -72,11 +72,11 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     final last = _delegate._lifecycle;
     if (lifecycle != last) {
       if (last != null) {
-        LifecycleCallbacks.instance._onDetachRegistry(last, this);
+        LifecycleCallbacks.instance._onDetach(last, this);
       }
       _delegate.lifecycle = lifecycle;
       if (lifecycle != null) {
-        LifecycleCallbacks.instance._onAttachRegistry(lifecycle, this);
+        LifecycleCallbacks.instance._onAttach(lifecycle, this);
       }
     }
   }
@@ -84,8 +84,7 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   @override
   void dispose() {
     if (_delegate._lifecycle != null) {
-      LifecycleCallbacks.instance
-          ._onDetachRegistry(_delegate._lifecycle!, this);
+      LifecycleCallbacks.instance._onDetach(_delegate._lifecycle!, this);
     }
 
     _delegate.dispose();

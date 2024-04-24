@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LifecycleApp(
+    return LifecycleAppOwner(
       child: MaterialApp(
         title: 'LifecycleApp Demo',
         theme: ThemeData(

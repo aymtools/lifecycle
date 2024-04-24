@@ -2,7 +2,7 @@ import 'package:anlifecycle/anlifecycle.dart';
 import 'package:anlifecycle/src/tools/list_ext.dart';
 import 'package:flutter/widgets.dart';
 
-part 'lifecycle_route_page.dart';
+part 'lifecycle_route.dart';
 
 abstract class _RouteChanger {
   void onChange(bool Function(Route route) checkVisible);
@@ -30,7 +30,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
 
   LifecycleNavigatorObserver();
 
-  /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求) 可以配合[LifecycleRoute]来跳过hook自定义分发，也可以直接使用默认构造函数完全自定义你的route状态
+  /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求) 可以配合[LifecycleRouteMixin]来跳过hook自定义分发，也可以直接使用默认构造函数完全自定义你的route状态
   factory LifecycleNavigatorObserver.hookMode() => LifecycleHookObserver();
 
   void _subscribe(_RouteChanger changer) {
@@ -173,7 +173,7 @@ class LifecycleHookObserver extends LifecycleNavigatorObserver {
   }
 
   void _hook(ModalRoute route) {
-    if (route is LifecycleRoute && (route as LifecycleRoute).doNotHookMe) {
+    if (route is LifecycleRouteMixin && (route as LifecycleRouteMixin).doNotHookMe) {
       return;
     }
 
@@ -190,16 +190,16 @@ class LifecycleHookObserver extends LifecycleNavigatorObserver {
   }
 }
 
-mixin LifecycleRoute<T> on OverlayRoute<T> {
+mixin LifecycleRouteMixin<T> on OverlayRoute<T> {
   /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求) 如需要在执行的过程中动态变化 使用此混入关闭hook进行定制
   /// 如需穿透当前的route 则不需要任何处理
-  /// 如需要自定义lifecycle 推荐按使用 在buildPage中返回 LifecycleRoutePage包裹的widget
+  /// 如需要自定义lifecycle 推荐按使用 在buildPage中返回 LifecycleRoute包裹的widget
   bool doNotHookMe = false;
 }
 
 Widget Function(BuildContext) _hookBuilder(
     Widget Function(BuildContext) source, ModalRoute route) {
-  return (context) => LifecycleRoutePage(
+  return (context) => LifecycleRouteOwner(
         route: route,
         child: Builder(
           builder: source,
