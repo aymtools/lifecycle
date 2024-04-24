@@ -88,6 +88,8 @@ abstract class LifecycleObserver {
 
 abstract class LifecycleOwner {
   Lifecycle get lifecycle;
+
+  dynamic get scope;
 }
 
 abstract class Lifecycle {

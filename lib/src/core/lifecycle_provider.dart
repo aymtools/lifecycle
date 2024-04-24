@@ -4,9 +4,9 @@ class LifecycleScope {}
 
 abstract class LifecycleOwnerWidget extends StatefulWidget {
   final Widget child;
-  final String? tag;
+  final dynamic scope;
 
-  const LifecycleOwnerWidget({super.key, required this.child, this.tag});
+  const LifecycleOwnerWidget({super.key, required this.child, this.scope});
 
   @override
   LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState();
@@ -18,18 +18,18 @@ abstract class LifecycleOwnerWidget extends StatefulWidget {
 class _EffectiveLifecycle extends InheritedWidget {
   const _EffectiveLifecycle({
     required this.lifecycle,
-    required this.tag,
+    required this.scope,
     required super.child,
   });
 
   final Lifecycle lifecycle;
 
   LifecycleState get currentState => lifecycle.currentState;
-  final String? tag;
+  final dynamic scope;
 
   @override
   bool updateShouldNotify(covariant _EffectiveLifecycle oldWidget) =>
-      lifecycle != oldWidget.lifecycle || tag != oldWidget.tag;
+      lifecycle != oldWidget.lifecycle || scope != oldWidget.scope;
 }
 
 class _LifecycleOwnerElement extends StatefulElement {
@@ -58,7 +58,7 @@ class _LifecycleOwnerElement extends StatefulElement {
         'The build content cannot be customized; it must return buildReturn.');
     return _EffectiveLifecycle(
       lifecycle: lifecycleOwner.lifecycle,
-      tag: widget.tag,
+      scope: widget.scope,
       child: widget.child,
     );
   }
@@ -103,8 +103,7 @@ class _LifecycleOwnerElement extends StatefulElement {
   void unmount() {
     _lifecycle.handleLifecycleEvent(LifecycleEvent.destroy);
     if (_lifecycle.parent != null) {
-      LifecycleCallbacks.instance
-          ._onDetach(_lifecycle.parent!, lifecycleOwner);
+      LifecycleCallbacks.instance._onDetach(_lifecycle.parent!, lifecycleOwner);
       _lifecycle.bindParentLifecycle(null);
     }
     super.unmount();

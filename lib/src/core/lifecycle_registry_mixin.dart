@@ -116,6 +116,9 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
 
   @override
+  dynamic get scope=>widget.scope;
+
+  @override
   void addLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? startWith, bool fullCycle = true}) {
     _delegate.addLifecycleObserver(observer,
