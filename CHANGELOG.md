@@ -1,7 +1,8 @@
 ## 2.0.0
 
 * lifecycle的提供者使用InheritedWidget来保证变更的及时通知
-* 增加关联时的处理
+* 增加LifecycleCallback关联时的处理
+* 优化调整工程结构(会带来一些兼容问题)
 
 ## 1.0.5
 
