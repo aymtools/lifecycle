@@ -43,6 +43,7 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
 
   Set<void Function(W widget, W oldWidget)>? _onDidUpdateWidget;
 
+  @Deprecated('Not suitable to be placed in the current library')
   void addOnDidUpdateWidget(void Function(W widget, W oldWidget) listener) {
     if (_onDidUpdateWidget == null) {}
     _onDidUpdateWidget!.add(listener);
@@ -116,7 +117,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
 
   @override
-  dynamic get scope=>widget.scope;
+  dynamic get scope => widget.scope;
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,
@@ -136,6 +137,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   @override
   Set<void Function(LOW widget, LOW oldWidget)>? _onDidUpdateWidget;
 
+  @Deprecated('Not suitable to be placed in the current library')
   @override
   void addOnDidUpdateWidget(void Function(LOW widget, LOW oldWidget) listener) {
     if (_onDidUpdateWidget == null) {}
