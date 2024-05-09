@@ -5,7 +5,8 @@ const _lifecycleOwnerBuildReturn = SizedBox.shrink();
 mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     implements LifecycleObserverRegistry {
   late final _LifecycleObserverRegistryDelegate _delegate =
-      LifecycleObserverRegistryStateMixinDelegate(target: this);
+      LifecycleObserverRegistryDelegate(
+          target: this, contextProvider: () => context);
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;

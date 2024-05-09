@@ -136,14 +136,14 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
   }
 }
 
-class LifecycleObserverRegistryStateMixinDelegate
+class LifecycleObserverRegistryDelegate
     extends _LifecycleObserverRegistryDelegate {
-  State get _state => _target as State;
+  final BuildContext Function() contextProvider;
 
-  BuildContext get _context => _state.context;
-
-  LifecycleObserverRegistryStateMixinDelegate({required super.target})
-      : assert(target is State);
+  LifecycleObserverRegistryDelegate({
+    required super.target,
+    required this.contextProvider,
+  }) : assert(target is State);
 
   @override
   Lifecycle get lifecycle {
@@ -153,8 +153,7 @@ class LifecycleObserverRegistryStateMixinDelegate
 
   @override
   void initState() {
-    assert(_state.mounted);
-    _context.visitAncestorElements((element) {
+    contextProvider().visitAncestorElements((element) {
       final p =
           element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
       final lifecycle = p?.lifecycle;
@@ -168,7 +167,7 @@ class LifecycleObserverRegistryStateMixinDelegate
 
   @override
   void didChangeDependencies() {
-    _context.visitAncestorElements((element) {
+    contextProvider().visitAncestorElements((element) {
       final p =
           element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
       final lifecycle = p?.lifecycle;
