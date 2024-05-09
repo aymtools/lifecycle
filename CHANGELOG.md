@@ -1,6 +1,7 @@
 ## 2.0.1
 
 * addOnDidUpdateWidget会产生性能问题将在下一个版本移除
+* 提供LifecycleObserverRegistryStateMixinDelegate，以便可以自定义LifecycleObserverRegistryMixin
 
 ## 2.0.0
 

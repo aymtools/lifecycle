@@ -4,21 +4,8 @@ const _lifecycleOwnerBuildReturn = SizedBox.shrink();
 
 mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     implements LifecycleObserverRegistry {
-  late final _LifecycleObserverRegistryDelegate _delegate = () {
-    final delegate = _LifecycleObserverRegistryDelegate(target: this);
-    assert(mounted);
-    context.visitAncestorElements((element) {
-      final p =
-          element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-      final lifecycle = p?.lifecycle;
-      delegate.lifecycle = lifecycle;
-      if (lifecycle != null) {
-        LifecycleCallbacks.instance._onAttach(lifecycle, this);
-      }
-      return false;
-    });
-    return delegate;
-  }();
+  late final _LifecycleObserverRegistryDelegate _delegate =
+      LifecycleObserverRegistryStateMixinDelegate(target: this);
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
@@ -63,31 +50,17 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   @override
   void initState() {
     super.initState();
+    _delegate.initState();
   }
 
   @override
   void didChangeDependencies() {
+    _delegate.didChangeDependencies();
     super.didChangeDependencies();
-    final p = context.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-    final lifecycle = p?.lifecycle;
-    final last = _delegate._lifecycle;
-    if (lifecycle != last) {
-      if (last != null) {
-        LifecycleCallbacks.instance._onDetach(last, this);
-      }
-      _delegate.lifecycle = lifecycle;
-      if (lifecycle != null) {
-        LifecycleCallbacks.instance._onAttach(lifecycle, this);
-      }
-    }
   }
 
   @override
   void dispose() {
-    if (_delegate._lifecycle != null) {
-      LifecycleCallbacks.instance._onDetach(_delegate._lifecycle!, this);
-    }
-
     _delegate.dispose();
     _onDidUpdateWidget?.clear();
     super.dispose();
@@ -97,24 +70,29 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
 
 mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
     implements LifecycleOwner, LifecycleObserverRegistryMixin<LOW> {
-  late final LifecycleRegistry _lifecycle;
-
   @override
   late final _LifecycleObserverRegistryDelegate _delegate =
-      _LifecycleObserverRegistryDelegate(target: this)..lifecycle = _lifecycle;
+      _LifecycleObserverRegistryDelegate(target: this);
 
-  @override
-  Lifecycle get lifecycle => _lifecycle;
+  late final LifecycleRegistry _lifecycleRegistry;
+
+  set _lifecycle(LifecycleRegistry registry) {
+    _lifecycleRegistry = registry;
+    _delegate.lifecycle = registry;
+  }
 
   @protected
-  LifecycleRegistry get lifecycleRegistry => _lifecycle;
+  LifecycleRegistry get lifecycleRegistry => _lifecycleRegistry;
+
+  @override
+  Lifecycle get lifecycle => _lifecycleRegistry;
+
+  @override
+  LifecycleState get currentLifecycleState => lifecycle.currentState;
 
   bool _isInactivate = false;
 
   bool get customDispatchEvent => false;
-
-  @override
-  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
 
   @override
   dynamic get scope => widget.scope;
@@ -158,7 +136,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   @override
   void deactivate() {
     _isInactivate = false;
-    if (customDispatchEvent) {
+    if (!customDispatchEvent) {
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
     }
     super.deactivate();
@@ -169,7 +147,19 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
     super.didChangeDependencies();
     _isInactivate = true;
     if (!customDispatchEvent) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
+      if (lifecycleRegistry.currentState < LifecycleState.started) {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
+      }
+      WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
+    }
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _isInactivate = true;
+    if (!customDispatchEvent &&
+        lifecycleRegistry.currentState < LifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
     }
   }
@@ -184,6 +174,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
 
   @override
   void dispose() {
+    _delegate.dispose();
     _onDidUpdateWidget?.clear();
     super.dispose();
     _onDidUpdateWidget = null;

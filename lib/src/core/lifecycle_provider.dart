@@ -100,6 +100,14 @@ class _LifecycleOwnerElement extends StatefulElement {
   }
 
   @override
+  void deactivate() {
+    super.deactivate();
+    if (_lifecycle.currentState >= LifecycleState.resumed) {
+      _lifecycle.handleLifecycleEvent(LifecycleEvent.pause);
+    }
+  }
+
+  @override
   void unmount() {
     _lifecycle.handleLifecycleEvent(LifecycleEvent.destroy);
     if (_lifecycle.parent != null) {

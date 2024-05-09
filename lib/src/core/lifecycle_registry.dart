@@ -101,6 +101,10 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
     os?.lifecycle = null;
   }
 
+  void initState() {}
+
+  void didChangeDependencies() {}
+
   void dispose() {
     _currState = LifecycleState.destroyed;
 
@@ -129,5 +133,64 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
       l = l.parent;
     }
     return null;
+  }
+}
+
+class LifecycleObserverRegistryStateMixinDelegate
+    extends _LifecycleObserverRegistryDelegate {
+  State get _state => _target as State;
+
+  BuildContext get _context => _state.context;
+
+  LifecycleObserverRegistryStateMixinDelegate({required super.target})
+      : assert(target is State);
+
+  @override
+  Lifecycle get lifecycle {
+    if (_lifecycle == null) initState();
+    return _lifecycle!;
+  }
+
+  @override
+  void initState() {
+    assert(_state.mounted);
+    _context.visitAncestorElements((element) {
+      final p =
+          element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+      final lifecycle = p?.lifecycle;
+      _lifecycle = lifecycle;
+      if (lifecycle != null) {
+        LifecycleCallbacks.instance._onAttach(lifecycle, _target);
+      }
+      return false;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    _context.visitAncestorElements((element) {
+      final p =
+          element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+      final lifecycle = p?.lifecycle;
+      final last = _lifecycle;
+      if (lifecycle != last) {
+        if (last != null) {
+          LifecycleCallbacks.instance._onDetach(last, _target);
+        }
+        _lifecycle = lifecycle;
+        if (lifecycle != null) {
+          LifecycleCallbacks.instance._onAttach(lifecycle, _target);
+        }
+      }
+      return false;
+    });
+  }
+
+  @override
+  void dispose() {
+    if (_lifecycle != null) {
+      LifecycleCallbacks.instance._onDetach(_lifecycle!, _target);
+    }
+    super.dispose();
   }
 }
