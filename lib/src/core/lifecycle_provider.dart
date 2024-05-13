@@ -118,3 +118,84 @@ class _LifecycleOwnerElement extends StatefulElement {
     _lifecycle.clearObserver();
   }
 }
+
+mixin LifecycleObserverRegistryElementMixin on ComponentElement
+    implements LifecycleObserverRegistry {
+  late final LifecycleObserverRegistryDelegate
+      _lifecycleObserverRegistryDelegate = LifecycleObserverRegistryDelegate(
+          target: this, parentElementProvider: parentElementProvider);
+
+  @override
+  void addLifecycleObserver(LifecycleObserver observer,
+          {LifecycleState? startWith, bool fullCycle = true}) =>
+      _lifecycleObserverRegistryDelegate.addLifecycleObserver(observer,
+          startWith: startWith, fullCycle: fullCycle);
+
+  @override
+  LifecycleState get currentLifecycleState =>
+      _lifecycleObserverRegistryDelegate.currentLifecycleState;
+
+  @override
+  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
+      _lifecycleObserverRegistryDelegate.findLifecycleObserver();
+
+  @override
+  Lifecycle get lifecycle => _lifecycleObserverRegistryDelegate.lifecycle;
+
+  @override
+  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
+      _lifecycleObserverRegistryDelegate.removeLifecycleObserver(observer,
+          fullCycle: fullCycle);
+
+  bool _isFirstBuild = true;
+
+  Element? _parent;
+
+  Element parentElementProvider() {
+    var parent = _parent;
+    if (parent == null) {
+      visitAncestorElements((element) {
+        parent = element;
+        return false;
+      });
+    }
+    return parent!;
+  }
+
+  @override
+  void mount(Element? parent, Object? newSlot) {
+    _parent = parent!;
+    _lifecycleObserverRegistryDelegate.initState();
+    super.mount(parent, newSlot);
+    _parent = null;
+  }
+
+  @override
+  void rebuild({bool force = false}) {
+    if (_isFirstBuild) {
+      _isFirstBuild = false;
+      assert(() {
+        final e = this;
+        if (e is StatefulElement &&
+            (e as StatefulElement).state is LifecycleObserverRegistry) {
+          return false;
+        }
+        return true;
+      }(),
+          'LifecycleObserverRegistryElementMixin cannot be used with LifecycleObserverRegistryState');
+    }
+    super.rebuild(force: force);
+  }
+
+  @override
+  void unmount() {
+    super.unmount();
+    _lifecycleObserverRegistryDelegate.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _lifecycleObserverRegistryDelegate.didChangeDependencies();
+  }
+}

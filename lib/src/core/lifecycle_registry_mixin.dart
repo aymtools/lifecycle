@@ -6,7 +6,15 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     implements LifecycleObserverRegistry {
   late final _LifecycleObserverRegistryDelegate _delegate =
       LifecycleObserverRegistryDelegate(
-          target: this, contextProvider: () => context);
+          target: this,
+          parentElementProvider: () {
+            late Element parent;
+            context.visitAncestorElements((element) {
+              parent = element;
+              return false;
+            });
+            return parent;
+          });
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;

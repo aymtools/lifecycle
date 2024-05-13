@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 
 import 'lifecycle.dart';
@@ -138,11 +139,11 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
 
 class LifecycleObserverRegistryDelegate
     extends _LifecycleObserverRegistryDelegate {
-  final BuildContext Function() contextProvider;
+  final Element Function() parentElementProvider;
 
   LifecycleObserverRegistryDelegate({
     required super.target,
-    required this.contextProvider,
+    required this.parentElementProvider,
   }) : assert(target is State);
 
   @override
@@ -153,36 +154,30 @@ class LifecycleObserverRegistryDelegate
 
   @override
   void initState() {
-    contextProvider().visitAncestorElements((element) {
-      final p =
-          element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-      final lifecycle = p?.lifecycle;
-      _lifecycle = lifecycle;
-      if (lifecycle != null) {
-        LifecycleCallbacks.instance._onAttach(lifecycle, _target);
-      }
-      return false;
-    });
+    final parent = parentElementProvider();
+    final p = parent.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+    final lifecycle = p?.lifecycle;
+    _lifecycle = lifecycle;
+    if (lifecycle != null) {
+      LifecycleCallbacks.instance._onAttach(lifecycle, _target);
+    }
   }
 
   @override
   void didChangeDependencies() {
-    contextProvider().visitAncestorElements((element) {
-      final p =
-          element.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-      final lifecycle = p?.lifecycle;
-      final last = _lifecycle;
-      if (lifecycle != last) {
-        if (last != null) {
-          LifecycleCallbacks.instance._onDetach(last, _target);
-        }
-        _lifecycle = lifecycle;
-        if (lifecycle != null) {
-          LifecycleCallbacks.instance._onAttach(lifecycle, _target);
-        }
+    final parent = parentElementProvider();
+    final p = parent.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+    final lifecycle = p?.lifecycle;
+    final last = _lifecycle;
+    if (lifecycle != last) {
+      if (last != null) {
+        LifecycleCallbacks.instance._onDetach(last, _target);
       }
-      return false;
-    });
+      _lifecycle = lifecycle;
+      if (lifecycle != null) {
+        LifecycleCallbacks.instance._onAttach(lifecycle, _target);
+      }
+    }
   }
 
   @override
