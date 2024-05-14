@@ -144,7 +144,7 @@ class LifecycleObserverRegistryDelegate
   LifecycleObserverRegistryDelegate({
     required super.target,
     required this.parentElementProvider,
-  }) : assert(target is State);
+  });
 
   @override
   Lifecycle get lifecycle {
