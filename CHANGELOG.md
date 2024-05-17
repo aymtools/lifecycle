@@ -3,6 +3,12 @@
 * addOnDidUpdateWidget会产生性能问题将在下一个版本移除
 * 提供LifecycleObserverRegistryDelegate，以便可以自定义LifecycleObserverRegistryMixin
 
+## 2.0.1
+
+* addOnDidUpdateWidget会产生性能问题将在下一个版本移除
+* 提供LifecycleObserverRegistryDelegate，以便可以自定义LifecycleObserverRegistryMixin
+* 增加LifecycleObserverRegistryElementMixin以便将registry混入到自定义element
+
 ## 2.0.0
 
 * lifecycle的提供者使用InheritedWidget来保证变更的及时通知
