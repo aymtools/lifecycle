@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:flutter/widgets.dart';
 
@@ -20,9 +21,9 @@ extension LifecycleObserverRegisterSupport on LifecycleObserverRegistry {
 
 class LifecycleEventObserverStream with LifecycleEventObserver {
   late final StreamController<LifecycleEvent> _controller =
-      StreamController<LifecycleEvent>(sync: true);
-  late final Stream<LifecycleEvent> _eventStream =
-      _controller.stream.asBroadcastStream();
+      StreamController<LifecycleEvent>.broadcast(sync: true);
+
+  late final Stream<LifecycleEvent> _eventStream = _controller.stream;
 
   Stream<LifecycleEvent> get eventStream => _eventStream;
 
@@ -46,10 +47,9 @@ class LifecycleEventObserverStream with LifecycleEventObserver {
 
 class LifecycleStateObserverStream implements LifecycleStateChangeObserver {
   final StreamController<LifecycleState> _controller =
-      StreamController<LifecycleState>(sync: true);
+      StreamController<LifecycleState>.broadcast(sync: true);
 
-  late final Stream<LifecycleState> _stateStream =
-      _controller.stream.asBroadcastStream();
+  late final Stream<LifecycleState> _stateStream = _controller.stream;
 
   Stream<LifecycleState> get stateStream => _stateStream;
 
@@ -132,8 +132,11 @@ extension LifecycleObserverRegistryMixinExt on LifecycleObserverRegistry {
   Future<LifecycleEvent> nextLifecycleEvent(LifecycleEvent event) {
     var observer = LifecycleEventObserverStream();
     addLifecycleObserver(observer, startWith: currentLifecycleState);
-    return observer.eventStream.firstWhere((e) => e == event).whenComplete(
+    final result = observer.eventStream
+        .firstWhereSync((e) => e == event, ignoreNoElement: true);
+    result.whenComplete(
         () => removeLifecycleObserver(observer, fullCycle: false));
+    return result;
   }
 
   Future<LifecycleEvent> nextLifecycleResumeEvent() =>
@@ -142,8 +145,11 @@ extension LifecycleObserverRegistryMixinExt on LifecycleObserverRegistry {
   Future<LifecycleState> nextLifecycleState(LifecycleState state) {
     var observer = LifecycleStateObserverStream();
     addLifecycleObserver(observer, startWith: currentLifecycleState);
-    return observer.stateStream.firstWhere((e) => e == state).whenComplete(
+    final result = observer.stateStream
+        .firstWhereSync((e) => e == state, ignoreNoElement: true);
+    result.whenComplete(
         () => removeLifecycleObserver(observer, fullCycle: false));
+    return result;
   }
 
   Future<LifecycleState> nextLifecycleResumedState() =>
@@ -154,5 +160,52 @@ extension LifecycleObserverRegistryMixinExt on LifecycleObserverRegistry {
       [bool cycleCompanionOwner = false]) {
     var o = _LifecycleObserverAddToOwner<LO>(observer, cycleCompanionOwner);
     addLifecycleObserver(o);
+  }
+}
+
+extension<T> on Stream<T> {
+  Future<T> firstWhereSync(bool Function(T element) test,
+      {bool ignoreNoElement = true, T Function()? orElse}) {
+    Completer<T> completer = Completer.sync();
+
+    StreamSubscription<T> subscription =
+        listen(null, onError: completer.completeError, onDone: () {
+      if (orElse != null) {
+        _runUserCode(orElse, completer.complete, completer.completeError);
+        return;
+      }
+      if (!ignoreNoElement) {
+        completer.completeError(StateError("No element"));
+      }
+    }, cancelOnError: true);
+
+    subscription.onData((T value) {
+      _runUserCode(() => test(value), (bool isMatch) {
+        if (isMatch) {
+          completer.complete(value);
+          subscription.cancel();
+        }
+      }, (err, st) {
+        completer.completeError(err, st);
+        subscription.cancel();
+      });
+    });
+    return completer.future;
+  }
+}
+
+_runUserCode<T>(T Function() userCode, Function(T value) onSuccess,
+    Function(Object error, StackTrace stackTrace) onError) {
+  try {
+    onSuccess(userCode());
+  } catch (e, s) {
+    AsyncError? replacement = Zone.current.errorCallback(e, s);
+    if (replacement == null) {
+      onError(e, s);
+    } else {
+      var error = replacement.error;
+      var stackTrace = replacement.stackTrace;
+      onError(error, stackTrace);
+    }
   }
 }

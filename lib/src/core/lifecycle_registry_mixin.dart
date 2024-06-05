@@ -4,7 +4,7 @@ const _lifecycleOwnerBuildReturn = SizedBox.shrink();
 
 mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     implements LifecycleObserverRegistry {
-  late final _LifecycleObserverRegistryDelegate _delegate =
+  late final _LifecycleObserverRegistryMixin _delegate =
       LifecycleObserverRegistryDelegate(
           target: this,
           parentElementProvider: () {
@@ -106,6 +106,8 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   @override
   dynamic get scope => widget.scope;
 
+  bool _firstDidChangeDependencies = true;
+
   @override
   void addLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? startWith, bool fullCycle = true}) {
@@ -155,6 +157,10 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _isInactivate = true;
+    if (_firstDidChangeDependencies) {
+      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
+      _firstDidChangeDependencies = false;
+    }
     if (!customDispatchEvent) {
       if (lifecycleRegistry.currentState < LifecycleState.started) {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);

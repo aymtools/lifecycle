@@ -4,9 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'lifecycle.dart';
 
 part 'lifecycle_callback.dart';
-
 part 'lifecycle_provider.dart';
-
 part 'lifecycle_registry_mixin.dart';
 
 class _ObserverS {
@@ -33,24 +31,12 @@ abstract class LifecycleObserverRegistry {
   LO? findLifecycleObserver<LO extends LifecycleObserver>();
 }
 
-class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
-  final LifecycleObserverRegistry _target;
-
+mixin _LifecycleObserverRegistryMixin implements LifecycleObserverRegistry {
   Lifecycle? _lifecycle;
   final Map<LifecycleObserver, _ObserverS> _observers = {};
 
-  LifecycleState _currState = LifecycleState.initialized;
-
-  _LifecycleObserverRegistryDelegate(
-      {required LifecycleObserverRegistry target})
-      : _target = target;
-
   @override
   Lifecycle get lifecycle => _lifecycle!;
-
-  @override
-  LifecycleState get currentLifecycleState =>
-      _lifecycle?.currentState ?? _currState;
 
   set lifecycle(Lifecycle? lifecycle) {
     if (lifecycle != _lifecycle) {
@@ -102,22 +88,6 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
     os?.lifecycle = null;
   }
 
-  void initState() {}
-
-  void didChangeDependencies() {}
-
-  void dispose() {
-    _currState = LifecycleState.destroyed;
-
-    final entries = [..._observers.entries];
-    for (var e in entries) {
-      e.value.lifecycle?.removeObserver(
-          e.key, e.value.fullCycle == true ? LifecycleState.destroyed : null);
-    }
-    _observers.clear();
-    _lifecycle = null;
-  }
-
   @override
   LO? findLifecycleObserver<LO extends LifecycleObserver>() {
     final os = _observers.keys.whereType<LO>();
@@ -135,32 +105,90 @@ class _LifecycleObserverRegistryDelegate implements LifecycleObserverRegistry {
     }
     return null;
   }
+
+  void dispose() {
+    final entries = [..._observers.entries];
+    for (var e in entries) {
+      e.value.lifecycle?.removeObserver(
+          e.key, e.value.fullCycle == true ? LifecycleState.destroyed : null);
+    }
+    _observers.clear();
+    _lifecycle = null;
+  }
+
+  void initState() {}
+
+  void didChangeDependencies() {}
+}
+
+class _LifecycleObserverRegistryDelegate
+    with _LifecycleObserverRegistryMixin
+    implements LifecycleObserverRegistry {
+  final LifecycleObserverRegistry _target;
+
+  LifecycleState _currState = LifecycleState.initialized;
+
+  _LifecycleObserverRegistryDelegate(
+      {required LifecycleObserverRegistry target})
+      : _target = target;
+
+  @override
+  LifecycleState get currentLifecycleState =>
+      _lifecycle?.currentState ?? _currState;
+
+  @override
+  void initState() {}
+
+  @override
+  void didChangeDependencies() {}
+
+  @override
+  void dispose() {
+    _currState = LifecycleState.destroyed;
+    super.dispose();
+  }
 }
 
 class LifecycleObserverRegistryDelegate
-    extends _LifecycleObserverRegistryDelegate {
+    with _LifecycleObserverRegistryMixin
+    implements LifecycleObserverRegistry {
+  final LifecycleObserverRegistry _target;
+
   final Element Function() parentElementProvider;
 
+  LifecycleState _currState = LifecycleState.initialized;
+
   LifecycleObserverRegistryDelegate({
-    required super.target,
+    required LifecycleObserverRegistry target,
     required this.parentElementProvider,
-  });
+  }) : _target = target;
 
   @override
   Lifecycle get lifecycle {
-    if (_lifecycle == null) initState();
+    if (_lifecycle == null) {
+      final parent = parentElementProvider();
+      final p =
+          parent.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+      final lifecycle = p?.lifecycle;
+      return lifecycle!;
+    }
     return _lifecycle!;
   }
 
   @override
+  LifecycleState get currentLifecycleState =>
+      _lifecycle?.currentState ?? _currState;
+
+  @override
   void initState() {
-    final parent = parentElementProvider();
-    final p = parent.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
-    final lifecycle = p?.lifecycle;
-    _lifecycle = lifecycle;
-    if (lifecycle != null) {
-      LifecycleCallbacks.instance._onAttach(lifecycle, _target);
-    }
+    // final parent = parentElementProvider();
+    // final p = parent.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+    // final lifecycle = p?.lifecycle;
+    // this.lifecycle = lifecycle;
+    // if (lifecycle != null) {
+    //   LifecycleCallbacks.instance._onAttach(lifecycle, _target);
+    // }
+    _currState = LifecycleState.created;
   }
 
   @override
@@ -173,7 +201,7 @@ class LifecycleObserverRegistryDelegate
       if (last != null) {
         LifecycleCallbacks.instance._onDetach(last, _target);
       }
-      _lifecycle = lifecycle;
+      this.lifecycle = lifecycle;
       if (lifecycle != null) {
         LifecycleCallbacks.instance._onAttach(lifecycle, _target);
       }
@@ -182,6 +210,7 @@ class LifecycleObserverRegistryDelegate
 
   @override
   void dispose() {
+    _currState = LifecycleState.destroyed;
     if (_lifecycle != null) {
       LifecycleCallbacks.instance._onDetach(_lifecycle!, _target);
     }

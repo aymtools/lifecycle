@@ -1,3 +1,7 @@
+## 2.0.2
+
+* 修复首次的start事件，触发在build之后(version 2.0.0,2.0.1)
+
 ## 2.0.1
 
 * addOnDidUpdateWidget会产生性能问题将在下一个版本移除

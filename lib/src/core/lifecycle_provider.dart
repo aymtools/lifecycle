@@ -45,6 +45,8 @@ class _LifecycleOwnerElement extends StatefulElement {
     lifecycleOwner._lifecycle = _lifecycle;
   }
 
+  bool _isFirstBuild = true;
+
   @override
   void update(LifecycleOwnerWidget newWidget) {
     super.update(newWidget);
@@ -57,7 +59,7 @@ class _LifecycleOwnerElement extends StatefulElement {
         result == _lifecycleOwnerBuildReturn || result == const Placeholder(),
         'The build content cannot be customized; it must return buildReturn.');
     return _EffectiveLifecycle(
-      lifecycle: lifecycleOwner.lifecycle,
+      lifecycle: _lifecycle,
       scope: widget.scope,
       child: widget.child,
     );
@@ -76,10 +78,21 @@ class _LifecycleOwnerElement extends StatefulElement {
 
     LifecycleCallbacks.instance._onAttach(parentLifecycle, lifecycleOwner);
 
-    //在这里会触发首次的state.didChangeDependencies 需要纠结 start事件的处理
+    //在这里会触发首次的state.didChangeDependencies 配合firstDidChangeDependencies分发 start事件的处理
+    lifecycleOwner._firstDidChangeDependencies = true;
     super.mount(parent, newSlot);
 
     _lifecycle.handleLifecycleEvent(LifecycleEvent.start);
+  }
+
+  @override
+  void rebuild({bool force = false}) {
+    if (_isFirstBuild) {
+      _isFirstBuild = false;
+      //确保首次start触发在build之前
+      _lifecycle.handleLifecycleEvent(LifecycleEvent.start);
+    }
+    super.rebuild(force: force);
   }
 
   @override
@@ -183,6 +196,7 @@ mixin LifecycleObserverRegistryElementMixin on ComponentElement
         return true;
       }(),
           'LifecycleObserverRegistryElementMixin cannot be used with LifecycleObserverRegistryState');
+      _lifecycleObserverRegistryDelegate.didChangeDependencies();
     }
     super.rebuild(force: force);
   }
