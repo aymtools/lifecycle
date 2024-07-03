@@ -27,8 +27,29 @@ abstract class LifecycleObserverRegistry {
 
   //移除Observer [fullCycle] 不为空时覆盖注册时的配置
   void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle});
+}
 
-  LO? findLifecycleObserver<LO extends LifecycleObserver>();
+extension LifecycleObserverRegistryFindObserverExt
+    on LifecycleObserverRegistry {
+  LO? findLifecycleObserver<LO extends LifecycleObserver>() {
+    final registry = this;
+    if (registry is _LifecycleObserverRegistryMixin) {
+      final os = registry._observers.keys.whereType<LO>();
+      LO? o = os.isEmpty ? null : os.first;
+      if (o != null) return o;
+    }
+    Lifecycle? l = lifecycle;
+    while (l != null && l is LifecycleRegistry) {
+      var owner = l.provider;
+      if (owner is LifecycleOwnerStateMixin) {
+        final os = owner._delegate._observers.keys.whereType<LO>();
+        LO? o = os.isEmpty ? null : os.first;
+        if (o != null) return o;
+      }
+      l = l.parent;
+    }
+    return null;
+  }
 }
 
 mixin _LifecycleObserverRegistryMixin implements LifecycleObserverRegistry {
@@ -88,23 +109,23 @@ mixin _LifecycleObserverRegistryMixin implements LifecycleObserverRegistry {
     os?.lifecycle = null;
   }
 
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() {
-    final os = _observers.keys.whereType<LO>();
-    LO? o = os.isEmpty ? null : os.first;
-    if (o != null) return o;
-    Lifecycle? l = lifecycle;
-    while (l != null && l is LifecycleRegistry) {
-      var owner = l.provider;
-      if (owner is LifecycleOwnerStateMixin) {
-        final os = owner._delegate._observers.keys.whereType<LO>();
-        LO? o = os.isEmpty ? null : os.first;
-        if (o != null) return o;
-      }
-      l = l.parent;
-    }
-    return null;
-  }
+  // @override
+  // LO? findLifecycleObserver<LO extends LifecycleObserver>() {
+  //   final os = _observers.keys.whereType<LO>();
+  //   LO? o = os.isEmpty ? null : os.first;
+  //   if (o != null) return o;
+  //   Lifecycle? l = lifecycle;
+  //   while (l != null && l is LifecycleRegistry) {
+  //     var owner = l.provider;
+  //     if (owner is LifecycleOwnerStateMixin) {
+  //       final os = owner._delegate._observers.keys.whereType<LO>();
+  //       LO? o = os.isEmpty ? null : os.first;
+  //       if (o != null) return o;
+  //     }
+  //     l = l.parent;
+  //   }
+  //   return null;
+  // }
 
   void dispose() {
     final entries = [..._observers.entries];

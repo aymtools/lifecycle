@@ -4,8 +4,25 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   LifecycleNavigatorObserver? _observer;
 
+  Route? get modalRoute {
+    if (widget.route != null) return widget.route;
+    if (mounted) {
+      final ctx = context as Element;
+      ctx.visitAncestorElements((parent) {
+        return false;
+      });
+    }
+    if (_observer == null) return null;
+    return ModalRoute.of(context);
+  }
+
   @override
   bool get customDispatchEvent => true;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
@@ -40,11 +57,12 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     }
     if (_observer == null) return;
     if (lifecycleRegistry.currentState > LifecycleState.initialized) {
-      final modalRoute = widget.route ?? ModalRoute.of(context);
+      final modalRoute = this.modalRoute;
       final isCurrent = modalRoute!.isCurrent;
       final isActive = modalRoute.isActive;
       if (isCurrent) {
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        // lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        _scheduleHandleResumeMicroTask();
       } else if (isActive) {
         if (checkVisible(modalRoute)) {
           lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
@@ -55,6 +73,37 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
       }
     }
+  }
+
+  bool _doubleCheck = false;
+
+  _scheduleHandleResumeMicroTask() {
+    if (_observer == null) return;
+    _doubleCheck = false;
+    scheduleMicrotask(() {
+      if (_doubleCheck) return;
+      _doubleCheck = true;
+      final modalRoute = this.modalRoute;
+      final observer = _observer;
+      if (observer == null || modalRoute == null) return;
+      if (lifecycleRegistry.currentState <= LifecycleState.initialized) return;
+      final isCurrent = modalRoute.isCurrent;
+      final isActive = modalRoute.isActive;
+      if (isCurrent) {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+      } else if (isActive) {
+        // if (observer.getTopRoute() == modalRoute) {
+        //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        // } else
+        if (observer.checkVisible(modalRoute)) {
+          lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+        } else {
+          lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+        }
+      } else {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+      }
+    });
   }
 }
 

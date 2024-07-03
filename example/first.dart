@@ -14,6 +14,7 @@ class _FistPageState extends State<FistPage>
     with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
   @override
   Widget build(BuildContext context) {
+    print('FistPage build');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fist Page'),

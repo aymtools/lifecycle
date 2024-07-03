@@ -14,6 +14,7 @@ class _SecondPageState extends State<SecondPage>
     with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
   @override
   Widget build(BuildContext context) {
+    print('SecondPage build');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Second Page'),

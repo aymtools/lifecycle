@@ -33,9 +33,9 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
       _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
 
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
-      _delegate.findLifecycleObserver<LO>();
+  // @override
+  // LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
+  //     _delegate.findLifecycleObserver<LO>();
 
   Set<void Function(W widget, W oldWidget)>? _onDidUpdateWidget;
 
@@ -119,9 +119,9 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
       _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
 
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
-      _delegate.findLifecycleObserver<LO>();
+  // @override
+  // LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
+  //     _delegate.findLifecycleObserver<LO>();
 
   @override
   Set<void Function(LOW widget, LOW oldWidget)>? _onDidUpdateWidget;

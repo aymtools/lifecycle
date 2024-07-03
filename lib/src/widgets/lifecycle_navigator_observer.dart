@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:anlifecycle/src/tools/list_ext.dart';
 import 'package:flutter/widgets.dart';
@@ -68,7 +70,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
 
       final listeners = _navigatorRouteChanger[nav];
       if (listeners != null && listeners.isNotEmpty) {
-        final ls = List<_RouteChanger>.from(listeners);
+        final ls = List<_RouteChanger>.from(listeners).reversed;
         for (var element in ls) {
           element.onChange(vRoute.contains);
         }
@@ -101,11 +103,17 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   @override
   void didReplace({Route? newRoute, Route? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-
+    int index = -1;
     if (oldRoute != null && navigator != null) {
-      _historyRoute[navigator!]?.remove(oldRoute);
+      final history = _historyRoute[navigator!];
+      if (history != null && history.isNotEmpty) {
+        index = history.indexOf(oldRoute);
+        if (index >= 0 && newRoute != null) {
+          history[index] = newRoute;
+        }
+      }
     }
-    if (newRoute != null) {
+    if (newRoute != null && index < 0) {
       _historyRoute.getOrPut(navigator, () => <Route>[]).add(newRoute);
     }
     _notifyChange();
@@ -131,6 +139,16 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     final navigator = Navigator.of(context);
     final history = _historyRoute.getOrPut(navigator, () => <Route>[]);
     return <Route>[...history];
+  }
+
+  Route? getTopRoute() {
+    if (_visibleRoutes.isNotEmpty) {
+      return _visibleRoutes.first;
+    }
+    final nav = navigator;
+    if (nav == null) return null;
+    final history = _historyRoute[nav];
+    return history == null || history.isEmpty ? null : history.last;
   }
 
   bool checkVisible(Route route) {
@@ -173,7 +191,8 @@ class LifecycleHookObserver extends LifecycleNavigatorObserver {
   }
 
   void _hook(ModalRoute route) {
-    if (route is LifecycleRouteMixin && (route as LifecycleRouteMixin).doNotHookMe) {
+    if (route is LifecycleRouteMixin &&
+        (route as LifecycleRouteMixin).doNotHookMe) {
       return;
     }
 

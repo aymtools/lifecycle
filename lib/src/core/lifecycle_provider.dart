@@ -148,9 +148,9 @@ mixin LifecycleObserverRegistryElementMixin on ComponentElement
   LifecycleState get currentLifecycleState =>
       _lifecycleObserverRegistryDelegate.currentLifecycleState;
 
-  @override
-  LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
-      _lifecycleObserverRegistryDelegate.findLifecycleObserver();
+  // @override
+  // LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
+  //     _lifecycleObserverRegistryDelegate.findLifecycleObserver();
 
   @override
   Lifecycle get lifecycle => _lifecycleObserverRegistryDelegate.lifecycle;
