@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:anlifecycle/anlifecycle.dart';
+import 'package:anlifecycle/src/tools/expando_ext.dart';
 import 'package:anlifecycle/src/tools/list_ext.dart';
 import 'package:flutter/widgets.dart';
 
@@ -14,18 +13,6 @@ Expando<Set<_RouteChanger>> _navigatorRouteChanger =
     Expando('navigatorRouteChanger');
 
 Expando<List<Route>> _historyRoute = Expando('_historyRoute');
-
-extension _ExpandoGetOrPutExt<T extends Object> on Expando<T> {
-  T getOrPut(Object? key, T Function() defaultValue) {
-    if (key == null) return defaultValue();
-    T? result = this[key];
-    if (result == null) {
-      result = defaultValue();
-      this[key] = result;
-    }
-    return result;
-  }
-}
 
 class LifecycleNavigatorObserver extends NavigatorObserver {
   final List<Route> _visibleRoutes = [];

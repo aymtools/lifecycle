@@ -3,6 +3,7 @@
 * 移除了LifecycleObserverRegistry中的findLifecycleObserver,改为使用扩展兼容模式
 * 修正了LifecycleRouteOwner在LifecycleNavigatorObserver.didReplace时路由记录错误的bug
 * 对Rouge的resume事件推迟处理，与其他的LifecycleOwnerWidget的行为保持一直(在widget.build之后触发)
+* LifecycleCallbacks增加removeCallback
 
 ## 2.0.2
 

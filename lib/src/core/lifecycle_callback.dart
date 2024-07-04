@@ -26,16 +26,32 @@ class LifecycleCallbacks {
     _ownerAttachCallbacks.add(callback);
   }
 
+  void removeOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
+    _ownerAttachCallbacks.remove(callback);
+  }
+
   void addOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
     _ownerDetachCallbacks.add(callback);
+  }
+
+  void removeOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
+    _ownerDetachCallbacks.remove(callback);
   }
 
   void addRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
     _registryAttachCallbacks.add(callback);
   }
 
+  void removeRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
+    _registryAttachCallbacks.remove(callback);
+  }
+
   void addRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
     _registryDetachCallbacks.add(callback);
+  }
+
+  void removeRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
+    _registryDetachCallbacks.remove(callback);
   }
 
   void _onAttach(Lifecycle? parent, Object child) {
@@ -133,44 +149,92 @@ class _TargetLifecycleCallback {
       callback(parent, childRegistry);
     }
   }
+
+  factory _TargetLifecycleCallback.of(LifecycleOwner owner) {
+    return _targetCallback.putIfAbsent(
+        owner, () => _TargetLifecycleCallback(owner: owner));
+  }
+
+  static _TargetLifecycleCallback? maybeOf(LifecycleOwner owner) {
+    return _targetCallback[owner];
+  }
+
+  void addOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
+    _ownerAttachCallbacks.add(callback);
+  }
+
+  void removeOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
+    _ownerAttachCallbacks.remove(callback);
+  }
+
+  void addOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
+    _ownerDetachCallbacks.add(callback);
+  }
+
+  void removeOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
+    _ownerDetachCallbacks.remove(callback);
+  }
+
+  void addRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
+    _registryAttachCallbacks.add(callback);
+  }
+
+  void removeRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
+    _registryAttachCallbacks.remove(callback);
+  }
+
+  void addRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
+    _registryDetachCallbacks.add(callback);
+  }
+
+  void removeRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
+    _registryDetachCallbacks.remove(callback);
+  }
 }
 
+//已经基于了lifecycle的自动移除不用担心内存泄露
 final Map<LifecycleOwner, _TargetLifecycleCallback> _targetCallback = {};
 
 extension LifecycleCallbackManager on LifecycleOwner {
   void addOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
     assert(lifecycle.currentState > LifecycleState.destroyed,
         'Must add after the LifecycleState.initialized.');
-    _targetCallback
-        .putIfAbsent(this, () => _TargetLifecycleCallback(owner: this))
-        ._ownerAttachCallbacks
-        .add(callback);
+    _TargetLifecycleCallback.of(this).addOwnerAttachCallback(callback);
+  }
+
+  void removeOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
+    _TargetLifecycleCallback.maybeOf(this)?.removeOwnerAttachCallback(callback);
   }
 
   void addOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
     assert(lifecycle.currentState > LifecycleState.destroyed,
         'Must add after the LifecycleState.initialized.');
-    _targetCallback
-        .putIfAbsent(this, () => _TargetLifecycleCallback(owner: this))
-        ._ownerDetachCallbacks
-        .add(callback);
+    _TargetLifecycleCallback.of(this).addOwnerDetachCallback(callback);
+  }
+
+  void removeOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
+    _TargetLifecycleCallback.maybeOf(this)?.removeOwnerDetachCallback(callback);
   }
 
   void addRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
     assert(lifecycle.currentState > LifecycleState.destroyed,
         'Must add after the LifecycleState.initialized.');
-    _targetCallback
-        .putIfAbsent(this, () => _TargetLifecycleCallback(owner: this))
-        ._registryAttachCallbacks
-        .add(callback);
+    _TargetLifecycleCallback.of(this).addRegistryAttachCallback(callback);
+  }
+
+  void removeRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
+    _TargetLifecycleCallback.maybeOf(this)
+        ?.removeRegistryAttachCallback(callback);
   }
 
   void addRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
     assert(lifecycle.currentState > LifecycleState.destroyed,
         'Must add after the LifecycleState.initialized.');
-    _targetCallback
-        .putIfAbsent(this, () => _TargetLifecycleCallback(owner: this))
-        ._registryDetachCallbacks
-        .add(callback);
+    _TargetLifecycleCallback.of(this).addRegistryDetachCallback(callback);
+  }
+
+  void removeRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
+    _TargetLifecycleCallback.maybeOf(this)
+        ?.removeRegistryDetachCallback(callback);
   }
 }
