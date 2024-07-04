@@ -4,16 +4,13 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   LifecycleNavigatorObserver? _observer;
 
-  Route? get modalRoute {
+  Route? get _modalRoute {
     if (widget.route != null) return widget.route;
-    if (mounted) {
-      final ctx = context as Element;
-      ctx.visitAncestorElements((parent) {
-        return false;
-      });
+    try {
+      return ModalRoute.of(context);
+    } catch (_) {
+      return null;
     }
-    if (_observer == null) return null;
-    return ModalRoute.of(context);
   }
 
   @override
@@ -34,12 +31,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
       _observer = observer;
       observer?._subscribe(this);
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (_observer?.navigator != null) {
-        onChange(_observer!.checkVisible);
-      }
-    });
+    _scheduleHandleResumeNextFrame();
   }
 
   @override
@@ -57,12 +49,12 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     }
     if (_observer == null) return;
     if (lifecycleRegistry.currentState > LifecycleState.initialized) {
-      final modalRoute = this.modalRoute;
+      final modalRoute = this._modalRoute;
       final isCurrent = modalRoute!.isCurrent;
       final isActive = modalRoute.isActive;
       if (isCurrent) {
         // lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
-        _scheduleHandleResumeMicroTask();
+        _scheduleHandleResumeNextFrame();
       } else if (isActive) {
         if (checkVisible(modalRoute)) {
           lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
@@ -77,13 +69,13 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
 
   bool _doubleCheck = false;
 
-  _scheduleHandleResumeMicroTask() {
+  _scheduleHandleResumeNextFrame() {
     if (_observer == null) return;
     _doubleCheck = false;
-    scheduleMicrotask(() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (_doubleCheck) return;
       _doubleCheck = true;
-      final modalRoute = this.modalRoute;
+      final modalRoute = this._modalRoute;
       final observer = _observer;
       if (observer == null || modalRoute == null) return;
       if (lifecycleRegistry.currentState <= LifecycleState.initialized) return;
