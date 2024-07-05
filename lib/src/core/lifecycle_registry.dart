@@ -175,21 +175,25 @@ class LifecycleObserverRegistryDelegate
     implements LifecycleObserverRegistry {
   final LifecycleObserverRegistry _target;
 
-  final Element Function() parentElementProvider;
+  final Element Function() contextProvider;
 
   LifecycleState _currState = LifecycleState.initialized;
 
   LifecycleObserverRegistryDelegate({
     required LifecycleObserverRegistry target,
-    required this.parentElementProvider,
+    required this.contextProvider,
   }) : _target = target;
 
   @override
   Lifecycle get lifecycle {
     if (_lifecycle == null) {
-      final parent = parentElementProvider();
-      final p =
-          parent.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+      late Element parent = contextProvider();
+      contextProvider().visitAncestorElements((element) {
+        parent = element;
+        return false;
+      });
+
+      final p = parent.getInheritedWidgetOfExactType<_EffectiveLifecycle>();
       final lifecycle = p?.lifecycle;
       return lifecycle!;
     }
@@ -214,8 +218,8 @@ class LifecycleObserverRegistryDelegate
 
   @override
   void didChangeDependencies() {
-    final parent = parentElementProvider();
-    final p = parent.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+    final p = contextProvider()
+        .dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
     final lifecycle = p?.lifecycle;
     final last = _lifecycle;
     if (lifecycle != last) {

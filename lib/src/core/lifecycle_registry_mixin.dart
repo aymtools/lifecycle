@@ -2,19 +2,45 @@ part of 'lifecycle_registry.dart';
 
 const _lifecycleOwnerBuildReturn = SizedBox.shrink();
 
+/// 混入之后只需要调用 [lifecycleDelegate.initState] [lifecycleDelegate.didChangeDependencies] [lifecycleDelegate.dispose]
+mixin LifecycleObserverRegistryDelegateMixin
+    implements LifecycleObserverRegistry {
+  BuildContext get context;
+
+  late final LifecycleObserverRegistryDelegate _delegate =
+      LifecycleObserverRegistryDelegate(
+          target: this, contextProvider: () => context as Element);
+
+  @override
+  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
+
+  @override
+  Lifecycle get lifecycle => _delegate.lifecycle;
+
+  @override
+  void addLifecycleObserver(LifecycleObserver observer,
+      {LifecycleState? startWith, bool fullCycle = true}) {
+    _delegate.addLifecycleObserver(observer,
+        startWith: startWith, fullCycle: fullCycle);
+  }
+
+  @override
+  void removeLifecycleObserver(LifecycleObserver observer, {bool? fullCycle}) =>
+      _delegate.removeLifecycleObserver(observer, fullCycle: fullCycle);
+
+// @override
+// LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
+//     _delegate.findLifecycleObserver<LO>();
+
+  @protected
+  LifecycleObserverRegistryDelegate get lifecycleDelegate => _delegate;
+}
+
 mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
     implements LifecycleObserverRegistry {
   late final _LifecycleObserverRegistryMixin _delegate =
       LifecycleObserverRegistryDelegate(
-          target: this,
-          parentElementProvider: () {
-            late Element parent;
-            context.visitAncestorElements((element) {
-              parent = element;
-              return false;
-            });
-            return parent;
-          });
+          target: this, contextProvider: () => context as Element);
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;

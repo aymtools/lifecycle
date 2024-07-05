@@ -136,7 +136,7 @@ mixin LifecycleObserverRegistryElementMixin on ComponentElement
     implements LifecycleObserverRegistry {
   late final LifecycleObserverRegistryDelegate
       _lifecycleObserverRegistryDelegate = LifecycleObserverRegistryDelegate(
-          target: this, parentElementProvider: parentElementProvider);
+          target: this, contextProvider: parentElementProvider);
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,
