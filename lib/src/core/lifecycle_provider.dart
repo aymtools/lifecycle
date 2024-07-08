@@ -71,9 +71,8 @@ class _LifecycleOwnerElement extends StatefulElement {
       _lifecycle.handleLifecycleEvent(LifecycleEvent.create);
     }
 
-    final parentLifecycle = parent
-        ?.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()
-        ?.lifecycle;
+    final parentLifecycle =
+        parent?.findAncestorWidgetOfExactType<_EffectiveLifecycle>()?.lifecycle;
     _lifecycle.bindParentLifecycle(parentLifecycle);
 
     LifecycleCallbacks.instance._onAttach(parentLifecycle, lifecycleOwner);
@@ -99,15 +98,13 @@ class _LifecycleOwnerElement extends StatefulElement {
   void didChangeDependencies() {
     final parentLifecycle =
         dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()?.lifecycle;
-    _lifecycle.bindParentLifecycle(parentLifecycle);
-    final lifecycle = parentLifecycle;
     final last = _lifecycle.parent;
-    if (lifecycle != last) {
+    if (parentLifecycle != last) {
       if (last != null) {
         LifecycleCallbacks.instance._onDetach(last, lifecycleOwner);
       }
       _lifecycle.bindParentLifecycle(parentLifecycle);
-      LifecycleCallbacks.instance._onAttach(lifecycle, lifecycleOwner);
+      LifecycleCallbacks.instance._onAttach(parentLifecycle, lifecycleOwner);
     }
     super.didChangeDependencies();
   }
@@ -136,7 +133,7 @@ mixin LifecycleObserverRegistryElementMixin on ComponentElement
     implements LifecycleObserverRegistry {
   late final LifecycleObserverRegistryDelegate
       _lifecycleObserverRegistryDelegate = LifecycleObserverRegistryDelegate(
-          target: this, contextProvider: parentElementProvider);
+          target: this, contextProvider: () => this);
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,
@@ -162,25 +159,10 @@ mixin LifecycleObserverRegistryElementMixin on ComponentElement
 
   bool _isFirstBuild = true;
 
-  Element? _parent;
-
-  Element parentElementProvider() {
-    var parent = _parent;
-    if (parent == null) {
-      visitAncestorElements((element) {
-        parent = element;
-        return false;
-      });
-    }
-    return parent!;
-  }
-
   @override
   void mount(Element? parent, Object? newSlot) {
-    _parent = parent!;
     _lifecycleObserverRegistryDelegate.initState();
     super.mount(parent, newSlot);
-    _parent = null;
   }
 
   @override
