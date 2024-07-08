@@ -193,7 +193,7 @@ class LifecycleObserverRegistryDelegate
         return false;
       });
 
-      final p = parent.getInheritedWidgetOfExactType<_EffectiveLifecycle>();
+      final p = parent.findAncestorWidgetOfExactType<_EffectiveLifecycle>();
       final lifecycle = p?.lifecycle;
       return lifecycle!;
     }
