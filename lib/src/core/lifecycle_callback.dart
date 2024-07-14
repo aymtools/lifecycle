@@ -1,13 +1,13 @@
-part of 'lifecycle_registry.dart';
+part of 'lifecycle.dart';
 
 typedef LifecycleOwnerAttachCallback = void Function(
     Lifecycle? parent, LifecycleOwner childOwner);
 typedef LifecycleOwnerDetachCallback = void Function(
     Lifecycle parent, LifecycleOwner childOwner);
 typedef LifecycleRegistryAttachCallback = void Function(
-    Lifecycle parent, LifecycleObserverRegistry childOwner);
+    Lifecycle parent, ILifecycleRegistry childOwner);
 typedef LifecycleRegistryDetachCallback = void Function(
-    Lifecycle parent, LifecycleObserverRegistry childOwner);
+    Lifecycle parent, ILifecycleRegistry childOwner);
 
 ///全局的lifecycle互相绑定回调处理
 class LifecycleCallbacks {
@@ -63,7 +63,7 @@ class LifecycleCallbacks {
       }
     }
     if (parent != null &&
-        child is LifecycleObserverRegistry &&
+        child is ILifecycleRegistry &&
         _registryAttachCallbacks.isNotEmpty) {
       final callbacks =
           Set<LifecycleRegistryAttachCallback>.of(_registryAttachCallbacks);
@@ -81,8 +81,7 @@ class LifecycleCallbacks {
         c(parent, child);
       }
     }
-    if (child is LifecycleObserverRegistry &&
-        _registryDetachCallbacks.isNotEmpty) {
+    if (child is ILifecycleRegistry && _registryDetachCallbacks.isNotEmpty) {
       final callbacks =
           Set<LifecycleRegistryDetachCallback>.of(_registryDetachCallbacks);
       for (var c in callbacks) {
@@ -132,8 +131,7 @@ class _TargetLifecycleCallback {
     }
   }
 
-  void onRegistryAttach(
-      Lifecycle parent, LifecycleObserverRegistry childRegistry) {
+  void onRegistryAttach(Lifecycle parent, ILifecycleRegistry childRegistry) {
     if (parent != owner.lifecycle) return;
     final callbacks = Set.of(_registryAttachCallbacks);
     for (var callback in callbacks) {
@@ -141,8 +139,7 @@ class _TargetLifecycleCallback {
     }
   }
 
-  void onRegistryDetach(
-      Lifecycle parent, LifecycleObserverRegistry childRegistry) {
+  void onRegistryDetach(Lifecycle parent, ILifecycleRegistry childRegistry) {
     if (parent != owner.lifecycle) return;
     final callbacks = Set.of(_registryDetachCallbacks);
     for (var callback in callbacks) {

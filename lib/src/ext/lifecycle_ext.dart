@@ -3,11 +3,17 @@ import 'dart:async';
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:flutter/widgets.dart';
 
-typedef LifecycleObserverRegister = LifecycleObserverRegistry;
-typedef LifecycleObserverRegisterMixin<W extends StatefulWidget>
-    = LifecycleObserverRegistryMixin<W>;
+@Deprecated('use ILifecycleRegistry')
+typedef LifecycleObserverRegister = ILifecycleRegistry;
 
-extension LifecycleObserverRegisterSupport on LifecycleObserverRegistry {
+@Deprecated('use ILifecycleRegistry')
+typedef LifecycleObserverRegistry = ILifecycleRegistry;
+
+@Deprecated('use LifecycleRegistryStateMixin')
+typedef LifecycleObserverRegisterMixin<W extends StatefulWidget>
+    = LifecycleRegistryStateMixin<W>;
+
+extension LifecycleObserverRegisterSupport on ILifecycleRegistry {
   void registerLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith, bool fullCycle = true}) =>
       addLifecycleObserver(observer,
@@ -17,6 +23,62 @@ extension LifecycleObserverRegisterSupport on LifecycleObserverRegistry {
           LifecycleObserver observer,
           [bool cycleCompanionOwner = false]) =>
       addLifecycleObserverToOwner(observer, cycleCompanionOwner);
+}
+
+@Deprecated('use LifecycleRegistryStateMixin')
+mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
+    implements LifecycleRegistryState {
+  late final LifecycleRegistryStateDelegate _delegate =
+      LifecycleRegistryStateDelegate(
+          target: this, contextProvider: () => context);
+
+  @override
+  void addLifecycleObserver(LifecycleObserver observer,
+          {LifecycleState? startWith, bool fullCycle = true}) =>
+      _delegate.addLifecycleObserver(observer,
+          startWith: startWith, fullCycle: fullCycle);
+
+  @override
+  LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
+
+  @override
+  Lifecycle get lifecycle => _delegate.lifecycle;
+
+  @override
+  void removeLifecycleObserver(LifecycleObserver observer,
+          {LifecycleState? willEnd, bool? fullCycle}) =>
+      _delegate.removeLifecycleObserver(observer,
+          willEnd: willEnd, fullCycle: fullCycle);
+
+  @override
+  void initState() {
+    super.initState();
+    _delegate.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _delegate.didChangeDependencies();
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    _delegate.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _delegate.activate();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _delegate.dispose();
+  }
 }
 
 class LifecycleEventObserverStream with LifecycleEventObserver {
@@ -114,11 +176,11 @@ extension _LifecycleOwnerFinder on LifecycleOwner {
     LifecycleOwner? find = this;
     while (find != null && find is! LO) {
       var parent = find.lifecycle.parent;
-      while (parent != null && parent is! LifecycleRegistry) {
-        parent = parent.parent;
-      }
+      // while (parent != null && parent is! LifecycleRegistry) {
+      //   parent = parent.parent;
+      // }
       if (parent != null) {
-        find = (parent as LifecycleRegistry).provider;
+        find = parent.owner;
       } else {
         find = null;
         break;
@@ -128,7 +190,7 @@ extension _LifecycleOwnerFinder on LifecycleOwner {
   }
 }
 
-extension LifecycleObserverRegistryMixinExt on LifecycleObserverRegistry {
+extension LifecycleObserverRegistryMixinExt on ILifecycleRegistry {
   Future<LifecycleEvent> nextLifecycleEvent(LifecycleEvent event) {
     var observer = LifecycleEventObserverStream();
     addLifecycleObserver(observer, startWith: currentLifecycleState);
