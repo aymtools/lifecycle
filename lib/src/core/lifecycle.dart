@@ -42,7 +42,7 @@ extension LifecycleStateOp on LifecycleState {
 LifecycleState _minState(LifecycleState state, LifecycleState state1) =>
     LifecycleState.values[min(state.index, state1.index)];
 
-abstract class _LifecycleRegistry {
+abstract class ILifecycleRegistry {
   LifecycleState get currentLifecycleState;
 
   void addLifecycleObserver(LifecycleObserver observer,
@@ -53,11 +53,11 @@ abstract class _LifecycleRegistry {
       {LifecycleState? willEnd, bool? fullCycle});
 }
 
-abstract class ILifecycleRegistry implements _LifecycleRegistry {
+abstract class _LifecycleRegistry implements ILifecycleRegistry {
   Lifecycle get lifecycle;
 }
 
-abstract class LifecycleOwner implements ILifecycleRegistry {
+abstract class LifecycleOwner implements _LifecycleRegistry {
   dynamic get scope;
 
   @protected
@@ -79,7 +79,7 @@ abstract class LifecycleOwner implements ILifecycleRegistry {
   LifecycleState get currentLifecycleState => lifecycle.currentLifecycleState;
 }
 
-abstract class Lifecycle implements _LifecycleRegistry {
+abstract class Lifecycle implements ILifecycleRegistry {
   Lifecycle? get parent;
 
   LifecycleOwner get owner;

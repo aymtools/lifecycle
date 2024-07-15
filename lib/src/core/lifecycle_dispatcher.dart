@@ -277,8 +277,10 @@ abstract class _ObserverDispatcher {
           bool fullCycle,
           void Function(Lifecycle lifecycle, LifecycleObserver observer,
                   LifecycleState willEnd)
-              willRemove) =>
-      _NoObserverDispatcher(state, observer, fullCycle, willRemove);
+              willRemove,
+          bool toLifecycle) =>
+      _NoObserverDispatcher(
+          state, observer, fullCycle, willRemove, toLifecycle);
 
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event);
 }
@@ -292,9 +294,10 @@ class _NoObserverDispatcher extends _ObserverDispatcher {
   ) willRemove;
 
   final _ObserverDispatcher _dispatcher;
+  final bool _toLifecycle;
 
-  _NoObserverDispatcher(
-      super.state, this.observer, super.fullCycle, this.willRemove)
+  _NoObserverDispatcher(super.state, this.observer, super.fullCycle,
+      this.willRemove, this._toLifecycle)
       : _dispatcher = _ObserverDispatcher(state, observer, fullCycle),
         super._();
 
