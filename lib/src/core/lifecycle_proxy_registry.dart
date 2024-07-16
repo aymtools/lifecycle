@@ -1,13 +1,5 @@
 part of 'lifecycle.dart';
 
-abstract class LifecycleRegistryState implements _LifecycleRegistry {
-  /// [toLifecycle] 当状态一致时将observer转移到 [Lifecycle] 处理,不再由 [LifecycleRegistryState] 处理
-  @override
-  void addLifecycleObserver(LifecycleObserver observer,
-      {LifecycleState? startWith,
-      bool fullCycle = true,
-      bool toLifecycle = false});
-}
 
 class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   final LifecycleRegistryState target;
