@@ -107,16 +107,16 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     _onLifecycleStateChange();
   }
 
-  late final parentStateChang =
+  late final _parentStateChanger =
       LifecycleObserver.stateChange((_) => _onLifecycleStateChange());
 
   set _parentLifecycle(Lifecycle? lifecycle) {
-    _lifecycle?.removeLifecycleObserver(parentStateChang,
+    _lifecycle?.removeLifecycleObserver(_parentStateChanger,
         willEnd: lifecycle?.currentLifecycleState);
 
     _lifecycle = lifecycle;
 
-    _lifecycle?.addLifecycleObserver(parentStateChang,
+    _lifecycle?.addLifecycleObserver(_parentStateChanger,
         startWith: lifecycle?.currentLifecycleState, fullCycle: true);
   }
 

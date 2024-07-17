@@ -1,5 +1,8 @@
 part of 'lifecycle.dart';
 
+LifecycleState _minState(LifecycleState state, LifecycleState state1) =>
+    LifecycleState.values[min(state.index, state1.index)];
+
 abstract class LifecycleRegistry implements Lifecycle {
   void bindParentLifecycle(Lifecycle? parent);
 
@@ -30,9 +33,8 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
   @override
   LifecycleOwner get owner => provider;
 
-  late final _LifecycleParentStateChangeObserver _maxStateChangeObserver =
-      _LifecycleParentStateChangeObserver(
-          this, (owner, state) => _handleMaxLifecycleStateChange(state));
+  late final _parentStateChanger =
+      LifecycleObserver.stateChange(_handleMaxLifecycleStateChange);
 
   final LinkedHashMap<LifecycleObserver, _ObserverDispatcher> _observers =
       LinkedHashMap<LifecycleObserver, _ObserverDispatcher>();
@@ -104,16 +106,20 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
     if (_parentLifecycle == parent) {
       return;
     }
-    _maxStateChangeObserver.parentLifecycle = parent;
-    _parentLifecycle = parent;
+    _parentLifecycle?.removeLifecycleObserver(_parentStateChanger,
+        willEnd: currentLifecycleState);
 
+    _parentLifecycle = parent;
     if (_parentLifecycle == null) {
       _handleMaxLifecycleStateChange(LifecycleState.resumed);
+    } else {
+      _parentLifecycle?.addLifecycleObserver(_parentStateChanger,
+          startWith: currentLifecycleState, fullCycle: true);
     }
   }
 
   void _handleMaxLifecycleStateChange(LifecycleState maxState) {
-    if (maxState != maxState) {
+    if (maxState != _maxState) {
       LifecycleState current = getCurrentState();
       _maxState = maxState;
       LifecycleState next = getCurrentState();
@@ -201,47 +207,6 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
       }
     }
     return dispatcher;
-  }
-}
-
-typedef _LifecycleStateChangeCallback = void Function(
-    LifecycleOwner owner, LifecycleState state);
-
-class _LifecycleParentStateChangeObserver
-    implements LifecycleStateChangeObserver {
-  final Lifecycle childLifecycle;
-  final _LifecycleStateChangeCallback callback;
-
-  Lifecycle? _parentLifecycle;
-
-  _LifecycleParentStateChangeObserver(this.childLifecycle, this.callback);
-
-  set parentLifecycle(Lifecycle? parent) {
-    if (_parentLifecycle == parent) {
-      return;
-    }
-    if (_parentLifecycle != null) {
-      childLifecycle.removeObserver(this);
-      _parentLifecycle!.removeObserver(this);
-    }
-
-    _parentLifecycle = parent;
-
-    if (_parentLifecycle != null) {
-      childLifecycle.addObserver(this);
-      _parentLifecycle!.addObserver(this);
-    }
-  }
-
-  @override
-  void onStateChange(LifecycleOwner owner, LifecycleState state) {
-    if (owner.lifecycle == _parentLifecycle) {
-      callback.call(owner, state);
-    }
-    if (state == LifecycleState.destroyed) {
-      childLifecycle.removeObserver(this);
-      _parentLifecycle?.removeObserver(this);
-    }
   }
 }
 

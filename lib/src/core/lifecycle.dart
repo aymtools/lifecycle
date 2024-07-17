@@ -40,10 +40,7 @@ extension LifecycleStateOp on LifecycleState {
       LifecycleState.values[max(index, other.index)];
 }
 
-LifecycleState _minState(LifecycleState state, LifecycleState state1) =>
-    LifecycleState.values[min(state.index, state1.index)];
-
-abstract class _LifecycleRegistry {
+abstract class LifecycleBase {
   LifecycleState get currentLifecycleState;
 
   void addLifecycleObserver(LifecycleObserver observer,
@@ -54,7 +51,13 @@ abstract class _LifecycleRegistry {
       {LifecycleState? willEnd, bool? fullCycle});
 }
 
-abstract class ILifecycleRegistry implements _LifecycleRegistry {
+abstract class Lifecycle implements LifecycleBase {
+  Lifecycle? get parent;
+
+  LifecycleOwner get owner;
+}
+
+abstract class ILifecycleRegistry implements LifecycleBase {
   Lifecycle get lifecycle;
 }
 
@@ -80,12 +83,6 @@ abstract class LifecycleOwner implements ILifecycleRegistry {
   LifecycleState get currentLifecycleState => lifecycle.currentLifecycleState;
 }
 
-abstract class Lifecycle implements _LifecycleRegistry {
-  Lifecycle? get parent;
-
-  LifecycleOwner get owner;
-}
-
 abstract class LifecycleRegistryState implements ILifecycleRegistry {
   /// [toLifecycle] 当状态一致时将observer转移到 [Lifecycle] 处理,不再由 [LifecycleRegistryState] 处理
   @override
@@ -93,16 +90,6 @@ abstract class LifecycleRegistryState implements ILifecycleRegistry {
       {LifecycleState? startWith,
       bool fullCycle = true,
       bool toLifecycle = false});
-}
-
-extension LifecycleSupprot on Lifecycle {
-  void addObserver(LifecycleObserver observer, [LifecycleState? startWith]) =>
-      addLifecycleObserver(observer, startWith: startWith, fullCycle: false);
-
-  void removeObserver(LifecycleObserver observer, [LifecycleState? endWith]) =>
-      removeLifecycleObserver(observer, willEnd: endWith);
-
-  LifecycleState get currentState => currentLifecycleState;
 }
 
 abstract class LifecycleObserver {

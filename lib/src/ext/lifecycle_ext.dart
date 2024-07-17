@@ -83,6 +83,16 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   }
 }
 
+extension LifecycleSupprot on Lifecycle {
+  void addObserver(LifecycleObserver observer, [LifecycleState? startWith]) =>
+      addLifecycleObserver(observer, startWith: startWith, fullCycle: false);
+
+  void removeObserver(LifecycleObserver observer, [LifecycleState? endWith]) =>
+      removeLifecycleObserver(observer, willEnd: endWith);
+
+  LifecycleState get currentState => currentLifecycleState;
+}
+
 class LifecycleEventObserverStream with LifecycleEventObserver {
   late final StreamController<LifecycleEvent> _controller =
       StreamController<LifecycleEvent>.broadcast(sync: true);

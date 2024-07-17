@@ -24,7 +24,8 @@ class _EffectiveLifecycle extends InheritedWidget {
 
   final Lifecycle lifecycle;
 
-  LifecycleState get currentState => lifecycle.currentState;
+  LifecycleState get currentState => lifecycle.currentLifecycleState;
+
   final dynamic scope;
 
   @override
@@ -67,7 +68,7 @@ class _LifecycleOwnerElement extends StatefulElement {
 
   @override
   void mount(Element? parent, Object? newSlot) {
-    if (_lifecycle.currentState < LifecycleState.created) {
+    if (_lifecycle.currentLifecycleState < LifecycleState.created) {
       _lifecycle.handleLifecycleEvent(LifecycleEvent.create);
     }
 
@@ -111,7 +112,7 @@ class _LifecycleOwnerElement extends StatefulElement {
   @override
   void deactivate() {
     super.deactivate();
-    if (_lifecycle.currentState >= LifecycleState.resumed) {
+    if (_lifecycle.currentLifecycleState >= LifecycleState.resumed) {
       _lifecycle.handleLifecycleEvent(LifecycleEvent.pause);
     }
   }
@@ -150,7 +151,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   Lifecycle get lifecycle => _lifecycleRegistry;
 
   @override
-  LifecycleState get currentLifecycleState => lifecycle.currentState;
+  LifecycleState get currentLifecycleState => lifecycle.currentLifecycleState;
 
   bool _isInactivate = false;
 
@@ -198,7 +199,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
       _firstDidChangeDependencies = false;
     }
     if (!customDispatchEvent) {
-      if (lifecycleRegistry.currentState < LifecycleState.started) {
+      if (lifecycleRegistry.currentLifecycleState < LifecycleState.started) {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
       }
       WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
@@ -210,7 +211,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
     super.activate();
     _isInactivate = true;
     if (!customDispatchEvent &&
-        lifecycleRegistry.currentState < LifecycleState.resumed) {
+        lifecycleRegistry.currentLifecycleState < LifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
     }
   }
