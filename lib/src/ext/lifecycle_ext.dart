@@ -93,6 +93,11 @@ extension LifecycleSupprot on Lifecycle {
   LifecycleState get currentState => currentLifecycleState;
 }
 
+extension LifecycleRegistryProviderSupprot on LifecycleRegistry {
+  @Deprecated('use [owner]')
+  LifecycleOwner get provider => owner;
+}
+
 class LifecycleEventObserverStream with LifecycleEventObserver {
   late final StreamController<LifecycleEvent> _controller =
       StreamController<LifecycleEvent>.broadcast(sync: true);
