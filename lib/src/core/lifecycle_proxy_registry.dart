@@ -51,18 +51,19 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     final state = _minState(currState, startWith ?? LifecycleState.destroyed);
 
     _NoObserverDispatcher dispatcher = _NoObserverDispatcher(
-        state, observer, fullCycle, _willRemove, toLifecycle);
+        observer, state, fullCycle, _willRemove, toLifecycle);
 
     _observers[observer] = dispatcher;
 
     (lifecycle as _LifecycleRegistryImpl)
         ._addObserverDispatcher(observer, dispatcher);
 
-    _moveState([dispatcher], currState);
+    _moveState(
+        [dispatcher], currState, (d) => _observers.containsKey(d._observer));
   }
 
-  void _moveState(
-      Iterable<_NoObserverDispatcher> dispatchers, LifecycleState toState) {
+  void _moveState(Iterable<_NoObserverDispatcher> dispatchers,
+      LifecycleState toState, bool Function(_ObserverDispatcher) check) {
     final owner = lifecycle.owner;
     final life = (_lifecycle as _LifecycleRegistryImpl?);
     final lState = life?.currentLifecycleState;
@@ -70,17 +71,18 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     dispatchers = dispatchers.where((e) => e._dispatcher._state != toState);
 
     for (var dispatcher in dispatchers) {
+      final observer = dispatcher._observer;
+
       final inner = _LifecycleRegistryImpl._moveState(
-          owner, dispatcher._dispatcher, toState);
+          owner, dispatcher._dispatcher, toState, check);
 
       //对于需要迁移到lifecycle的observer进行迁移
       if (dispatcher._toLifecycle &&
-          _observers.containsKey(dispatcher.observer) &&
+          _observers.containsKey(dispatcher._observer) &&
           life != null &&
           inner._state == lState) {
-        final o = dispatcher.observer;
-        removeLifecycleObserver(o, willEnd: LifecycleState.resumed);
-        life._addObserverDispatcher(o, inner);
+        removeLifecycleObserver(observer, willEnd: LifecycleState.resumed);
+        life._addObserverDispatcher(observer, inner);
       }
     }
   }
@@ -91,7 +93,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     if (dispatcher == null) return;
 
     if (willEnd.index < dispatcher._dispatcher._state.index) {
-      _moveState([dispatcher], willEnd);
+      _moveState([dispatcher], willEnd, (_) => true);
     }
   }
 
@@ -121,8 +123,8 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
         startWith: state, fullCycle: true);
   }
 
-  void _onLifecycleStateChange() =>
-      _moveState([..._observers.values], currentLifecycleState);
+  void _onLifecycleStateChange() => _moveState([..._observers.values],
+      currentLifecycleState, (d) => _observers.containsKey(d._observer));
 
   void initState() {
     _isFirstStart = true;
@@ -175,7 +177,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       final life = lifecycle;
       final startWith = currentLifecycleState;
       for (var e in willAddToLifecycle) {
-        life.addLifecycleObserver(e.observer,
+        life.addLifecycleObserver(e._observer,
             startWith: startWith, fullCycle: e._fullCycle);
       }
       _observers.removeWhere((_, e) => e._toLifecycle);

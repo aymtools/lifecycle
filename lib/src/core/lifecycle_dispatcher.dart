@@ -61,10 +61,10 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
         }
       }
       if (dispatcher is _NoObserverDispatcher) {
-        dispatcher.willRemove.call(this, dispatcher.observer, willEnd);
+        dispatcher.willRemove.call(this, dispatcher._observer, willEnd);
       } else {
         if (willEnd.index < dispatcher._state.index) {
-          _moveState(provider, dispatcher, willEnd);
+          _moveState(provider, dispatcher, willEnd, (_) => true);
         }
       }
     }
@@ -86,8 +86,8 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
     if (_observers.containsKey(observer)) {
       return;
     }
-    _moveState(provider, dispatcher, current);
     _observers[observer] = dispatcher;
+    _moveState(provider, dispatcher, current, _observers.containsValue);
   }
 
   @override
@@ -141,7 +141,7 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
       return;
     }
     _observers.values.toList().forEach((observer) {
-      _moveState(provider, observer, next);
+      _moveState(provider, observer, next, _observers.containsValue);
     });
     _lastState = next;
   }
@@ -189,18 +189,21 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
     }
   }
 
-  static _ObserverDispatcher _moveState(LifecycleOwner owner,
-      _ObserverDispatcher dispatcher, LifecycleState destination) {
+  static _ObserverDispatcher _moveState(
+      LifecycleOwner owner,
+      _ObserverDispatcher dispatcher,
+      LifecycleState destination,
+      bool Function(_ObserverDispatcher) check) {
     LifecycleState current = dispatcher._state;
     if (current == destination) return dispatcher;
     if (current.index > destination.index) {
-      while (dispatcher._state.index > destination.index) {
+      while (dispatcher._state.index > destination.index && check(dispatcher)) {
         LifecycleEvent event = _downEvent(dispatcher._state);
         dispatcher._state = _getStateAfter(event);
         dispatcher.dispatchEvent(owner, event);
       }
     } else {
-      while (dispatcher._state.index < destination.index) {
+      while (dispatcher._state.index < destination.index && check(dispatcher)) {
         LifecycleEvent event = _upEvent(dispatcher._state);
         dispatcher._state = _getStateAfter(event);
         dispatcher.dispatchEvent(owner, event);
@@ -211,12 +214,11 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
 }
 
 abstract class _ObserverDispatcher {
+  final LifecycleObserver _observer;
   LifecycleState _state;
   bool _fullCycle;
 
-  _ObserverDispatcher._(LifecycleState state, bool fullCycle)
-      : _state = state,
-        _fullCycle = fullCycle;
+  _ObserverDispatcher._(this._observer, this._state, this._fullCycle);
 
   factory _ObserverDispatcher(
       LifecycleState state, LifecycleObserver observer, bool fullCycle) {
@@ -230,11 +232,11 @@ abstract class _ObserverDispatcher {
 
   factory _ObserverDispatcher.state(LifecycleState state,
           LifecycleStateChangeObserver observer, bool fullCycle) =>
-      _StateObserverDispatcher(state, observer, fullCycle);
+      _StateObserverDispatcher(observer, state, fullCycle);
 
   factory _ObserverDispatcher.event(LifecycleState state,
           LifecycleEventObserver observer, bool fullCycle) =>
-      _EventObserverDispatcher(state, observer, fullCycle);
+      _EventObserverDispatcher(observer, state, fullCycle);
 
   factory _ObserverDispatcher.no(
           LifecycleState state,
@@ -245,13 +247,12 @@ abstract class _ObserverDispatcher {
               willRemove,
           bool toLifecycle) =>
       _NoObserverDispatcher(
-          state, observer, fullCycle, willRemove, toLifecycle);
+          observer, state, fullCycle, willRemove, toLifecycle);
 
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event);
 }
 
 class _NoObserverDispatcher extends _ObserverDispatcher {
-  final LifecycleObserver observer;
   final void Function(
     Lifecycle lifecycle,
     LifecycleObserver observer,
@@ -261,7 +262,7 @@ class _NoObserverDispatcher extends _ObserverDispatcher {
   final _ObserverDispatcher _dispatcher;
   final bool _toLifecycle;
 
-  _NoObserverDispatcher(super.state, this.observer, super.fullCycle,
+  _NoObserverDispatcher(super.observer, super.state, super.fullCycle,
       this.willRemove, this._toLifecycle)
       : _dispatcher = _ObserverDispatcher(state, observer, fullCycle),
         super._();
@@ -271,15 +272,16 @@ class _NoObserverDispatcher extends _ObserverDispatcher {
 }
 
 class _StateObserverDispatcher extends _ObserverDispatcher {
-  final LifecycleStateChangeObserver _observer;
   final _EventObserverDispatcher? _eventObserver;
 
+  LifecycleStateChangeObserver get _stateChangeObserver =>
+      _observer as LifecycleStateChangeObserver;
+
   _StateObserverDispatcher(
-      super.state, LifecycleStateChangeObserver observer, super.fullCycle)
-      : _observer = observer,
-        _eventObserver = observer is LifecycleEventObserver
+      LifecycleStateChangeObserver super.observer, super.state, super.fullCycle)
+      : _eventObserver = observer is LifecycleEventObserver
             ? _EventObserverDispatcher(
-                state, observer as LifecycleEventObserver, fullCycle)
+                observer as LifecycleEventObserver, state, fullCycle)
             : null,
         super._();
 
@@ -291,42 +293,42 @@ class _StateObserverDispatcher extends _ObserverDispatcher {
 
   @override
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
-    _observer.onStateChange(
+    _stateChangeObserver.onStateChange(
         owner, _LifecycleRegistryImpl._getStateAfter(event));
     _eventObserver?.dispatchEvent(owner, event);
   }
 }
 
 class _EventObserverDispatcher extends _ObserverDispatcher {
-  final LifecycleEventObserver _observer;
+  LifecycleEventObserver get _eventObserver =>
+      _observer as LifecycleEventObserver;
 
   _EventObserverDispatcher(
-      super.state, LifecycleEventObserver observer, super.fullCycle)
-      : _observer = observer,
-        super._();
+      LifecycleEventObserver super.observer, super.state, super.fullCycle)
+      : super._();
 
   void _dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
     switch (event) {
       case LifecycleEvent.create:
-        _observer.onCreate(owner);
+        _eventObserver.onCreate(owner);
         break;
       case LifecycleEvent.start:
-        _observer.onStart(owner);
+        _eventObserver.onStart(owner);
         break;
       case LifecycleEvent.resume:
-        _observer.onResume(owner);
+        _eventObserver.onResume(owner);
         break;
       case LifecycleEvent.pause:
-        _observer.onPause(owner);
+        _eventObserver.onPause(owner);
         break;
       case LifecycleEvent.stop:
-        _observer.onStop(owner);
+        _eventObserver.onStop(owner);
         break;
       case LifecycleEvent.destroy:
-        _observer.onDestroy(owner);
+        _eventObserver.onDestroy(owner);
         break;
     }
-    _observer.onAnyEvent(owner, event);
+    _eventObserver.onAnyEvent(owner, event);
   }
 
   @override
