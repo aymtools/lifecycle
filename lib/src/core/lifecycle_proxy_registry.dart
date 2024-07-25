@@ -127,8 +127,10 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       currentLifecycleState, (d) => _observers.containsKey(d._observer));
 
   void initState() {
-    _isFirstStart = true;
-    _changeToState(LifecycleState.created);
+    if (_currState < LifecycleState.created) {
+      _isFirstStart = true;
+      _changeToState(LifecycleState.created);
+    }
   }
 
   void didChangeDependencies() {
@@ -169,6 +171,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   }
 
   void dispose() {
+    if (_currState <= LifecycleState.destroyed) return;
     final obs = [..._observers.values];
     final willAddToLifecycle = obs.where((e) => e._toLifecycle);
 
@@ -283,6 +286,11 @@ mixin LifecycleRegistryElementMixin on ComponentElement
 
   @override
   void mount(Element? parent, Object? newSlot) {
+    // Element ele = this;
+    // if (ele is StatefulElement) {
+    //   if (ele.state is LifecycleRegistryStateMixin) {
+    //   } else {}
+    // }
     _delegate.initState();
     super.mount(parent, newSlot);
   }
