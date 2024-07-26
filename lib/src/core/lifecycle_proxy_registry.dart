@@ -3,6 +3,7 @@ part of 'lifecycle.dart';
 class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   final LifecycleRegistryState target;
   final BuildContext Function() contextProvider;
+  Element Function()? parentProvider;
 
   LifecycleRegistryStateDelegate(
       {required this.target, required this.contextProvider});
@@ -21,14 +22,18 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   @override
   Lifecycle get lifecycle {
     if (_lifecycle == null) {
-      late Element parent = contextProvider() as Element;
-      assert(parent.mounted);
-      parent.visitAncestorElements((element) {
-        parent = element;
-        return false;
-      });
+      late Element? parent = parentProvider?.call();
+      if (parent == null) {
+        parent = contextProvider() as Element;
+        assert(parent.mounted);
+        parent.visitAncestorElements((element) {
+          parent = element;
+          return false;
+        });
+      }
+      assert(parent?.mounted == true);
 
-      final p = parent.findAncestorWidgetOfExactType<_EffectiveLifecycle>();
+      final p = parent!.findAncestorWidgetOfExactType<_EffectiveLifecycle>();
       final lifecycle = p?.lifecycle;
       return lifecycle!;
     }
@@ -202,7 +207,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
 mixin LifecycleRegistryStateMixin<W extends StatefulWidget> on State<W>
     implements LifecycleRegistryState {
-  late final LifecycleRegistryStateDelegate _delegate =
+  late LifecycleRegistryStateDelegate _delegate =
       LifecycleRegistryStateDelegate(
           target: this, contextProvider: () => context);
 
@@ -286,28 +291,30 @@ mixin LifecycleRegistryElementMixin on ComponentElement
 
   @override
   void mount(Element? parent, Object? newSlot) {
-    // Element ele = this;
-    // if (ele is StatefulElement) {
-    //   if (ele.state is LifecycleRegistryStateMixin) {
-    //   } else {}
-    // }
+    final e = this;
+    if (e is StatefulElement &&
+        (e as StatefulElement).state is ILifecycleRegistry) {
+      final state = (e as StatefulElement).state;
+      if (state is LifecycleRegistryStateMixin) {
+        state._delegate = _delegate;
+      } else {
+        assert(true,
+            'LifecycleRegistryElementMixin state cannot be used with ILifecycleRegistry');
+      }
+    }
+
+    if (parent != null) {
+      _delegate.parentProvider = () => parent;
+    }
     _delegate.initState();
     super.mount(parent, newSlot);
+    _delegate.parentProvider = null;
   }
 
   @override
   void rebuild({bool force = false}) {
     if (_isFirstBuild) {
       _isFirstBuild = false;
-      assert(() {
-        final e = this;
-        if (e is StatefulElement &&
-            (e as StatefulElement).state is ILifecycleRegistry) {
-          return false;
-        }
-        return true;
-      }(),
-          'LifecycleRegistryElementMixin state cannot be used with ILifecycleRegistry');
       _delegate.didChangeDependencies();
     }
     super.rebuild(force: force);

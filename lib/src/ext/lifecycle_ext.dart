@@ -13,6 +13,9 @@ typedef LifecycleObserverRegistry = ILifecycleRegistry;
 typedef LifecycleObserverRegisterMixin<W extends StatefulWidget>
     = LifecycleRegistryStateMixin<W>;
 
+@Deprecated('use LifecycleRegistryElementMixin')
+typedef LifecycleObserverRegistryElementMixin = LifecycleRegistryElementMixin;
+
 extension LifecycleObserverRegisterSupport on ILifecycleRegistry {
   void registerLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith, bool fullCycle = true}) =>
