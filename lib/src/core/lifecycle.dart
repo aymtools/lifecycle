@@ -40,7 +40,7 @@ extension LifecycleStateOp on LifecycleState {
       LifecycleState.values[max(index, other.index)];
 }
 
-abstract class LifecycleBase {
+abstract class ILifecycle {
   LifecycleState get currentLifecycleState;
 
   void addLifecycleObserver(LifecycleObserver observer,
@@ -51,13 +51,32 @@ abstract class LifecycleBase {
       {LifecycleState? willEnd, bool? fullCycle});
 }
 
-abstract class Lifecycle implements LifecycleBase {
+abstract class Lifecycle implements ILifecycle {
   Lifecycle? get parent;
 
   LifecycleOwner get owner;
+
+  static Lifecycle? maybeOf(BuildContext context, {bool listen = true}) {
+    if (context is _LifecycleOwnerElement) {
+      return context._lifecycle;
+    }
+    _EffectiveLifecycle? lp;
+    if (listen) {
+      lp = context.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+    } else {
+      lp = context.findAncestorWidgetOfExactType<_EffectiveLifecycle>();
+    }
+    return lp?.lifecycle;
+  }
+
+  static Lifecycle of(BuildContext context, {bool listen = true}) {
+    final lifecycle = maybeOf(context, listen: listen);
+    assert(lifecycle != null);
+    return lifecycle!;
+  }
 }
 
-abstract class ILifecycleRegistry implements LifecycleBase {
+abstract class ILifecycleRegistry implements ILifecycle {
   Lifecycle get lifecycle;
 }
 
@@ -77,7 +96,8 @@ abstract class LifecycleOwner implements ILifecycleRegistry {
   @override
   void removeLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? willEnd, bool? fullCycle}) =>
-      removeLifecycleObserver(observer, willEnd: willEnd);
+      lifecycle.removeLifecycleObserver(observer,
+          willEnd: willEnd, fullCycle: fullCycle);
 
   @override
   LifecycleState get currentLifecycleState => lifecycle.currentLifecycleState;
@@ -85,11 +105,12 @@ abstract class LifecycleOwner implements ILifecycleRegistry {
 
 abstract class LifecycleRegistryState implements ILifecycleRegistry {
   /// [toLifecycle] 当状态一致时将observer转移到 [Lifecycle] 处理,不再由 [LifecycleRegistryState] 处理
+  /// 默认为true 保持旧版本兼容性
   @override
   void addLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? startWith,
       bool fullCycle = true,
-      bool toLifecycle = false});
+      bool toLifecycle = true});
 }
 
 abstract class LifecycleObserver {

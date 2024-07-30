@@ -253,7 +253,7 @@ abstract class _ObserverDispatcher {
 }
 
 class _NoObserverDispatcher extends _ObserverDispatcher {
-  final void Function(
+  void Function(
     Lifecycle lifecycle,
     LifecycleObserver observer,
     LifecycleState willEnd,

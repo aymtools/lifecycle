@@ -1,5 +1,7 @@
 part of 'lifecycle.dart';
 
+void _remove(_, __, ___) {}
+
 class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   final LifecycleRegistryState target;
   final BuildContext Function() contextProvider;
@@ -83,11 +85,14 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
       //对于需要迁移到lifecycle的observer进行迁移
       if (dispatcher._toLifecycle &&
-          _observers.containsKey(dispatcher._observer) &&
+          _observers.containsKey(observer) &&
           life != null &&
           inner._state == lState) {
-        removeLifecycleObserver(observer, willEnd: LifecycleState.resumed);
-        life._addObserverDispatcher(observer, inner);
+        life._observers[observer] = inner;
+        dispatcher.willRemove = _remove;
+        _observers[observer] = dispatcher;
+        // removeLifecycleObserver(observer, willEnd: LifecycleState.resumed);
+        // life._addObserverDispatcher(observer, inner);
       }
     }
   }
@@ -107,6 +112,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       {LifecycleState? willEnd, bool? fullCycle}) {
     lifecycle.removeLifecycleObserver(observer,
         willEnd: willEnd, fullCycle: fullCycle);
+    _observers.remove(observer);
   }
 
   void _changeToState(LifecycleState state) {
@@ -298,7 +304,7 @@ mixin LifecycleRegistryElementMixin on ComponentElement
       if (state is LifecycleRegistryStateMixin) {
         state._delegate = _delegate;
       } else {
-        assert(true,
+        assert(false,
             'LifecycleRegistryElementMixin state cannot be used with ILifecycleRegistry');
       }
     }
