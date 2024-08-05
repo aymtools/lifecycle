@@ -1,7 +1,5 @@
 part of 'lifecycle.dart';
 
-void _remove(_, __, ___) {}
-
 class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   final LifecycleRegistryState target;
   final BuildContext Function() contextProvider;
@@ -35,21 +33,20 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       }
       assert(parent?.mounted == true);
 
-      final p = parent!.findAncestorWidgetOfExactType<_EffectiveLifecycle>();
-      final lifecycle = p?.lifecycle;
-      return lifecycle!;
+      final lifecycle = Lifecycle.of(parent!, listen: false);
+      return lifecycle;
     }
     return _lifecycle!;
   }
 
-  final HashMap<LifecycleObserver, _NoObserverDispatcher> _observers =
-      HashMap<LifecycleObserver, _NoObserverDispatcher>();
+  final HashMap<LifecycleObserver, _ProxyObserverDispatcher> _observers =
+      HashMap<LifecycleObserver, _ProxyObserverDispatcher>();
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? startWith,
       bool fullCycle = true,
-      bool toLifecycle = false}) {
+      bool destroyWithRegistry = true}) {
     assert(lifecycle is _LifecycleRegistryImpl);
     if (_currState <= LifecycleState.destroyed) return;
     if (_observers.containsKey(observer)) return;
@@ -57,8 +54,8 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
     final state = _minState(currState, startWith ?? LifecycleState.destroyed);
 
-    _NoObserverDispatcher dispatcher = _NoObserverDispatcher(
-        observer, state, fullCycle, _willRemove, toLifecycle);
+    _ProxyObserverDispatcher dispatcher = _ProxyObserverDispatcher(
+        observer, state, fullCycle, _willRemove, destroyWithRegistry);
 
     _observers[observer] = dispatcher;
 
@@ -69,13 +66,13 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
         [dispatcher], currState, (d) => _observers.containsKey(d._observer));
   }
 
-  void _moveState(Iterable<_NoObserverDispatcher> dispatchers,
+  void _moveState(Iterable<_ProxyObserverDispatcher> dispatchers,
       LifecycleState toState, bool Function(_ObserverDispatcher) check) {
     final owner = lifecycle.owner;
     final life = (_lifecycle as _LifecycleRegistryImpl?);
-    final lState = life?.currentLifecycleState;
 
-    dispatchers = dispatchers.where((e) => e._dispatcher._state != toState);
+    dispatchers = dispatchers
+        .where((e) => e._dispatcher._state != toState && e._willToLifecycle);
 
     for (var dispatcher in dispatchers) {
       final observer = dispatcher._observer;
@@ -83,16 +80,15 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       final inner = _LifecycleRegistryImpl._moveState(
           owner, dispatcher._dispatcher, toState, check);
 
-      //对于需要迁移到lifecycle的observer进行迁移
-      if (dispatcher._toLifecycle &&
-          _observers.containsKey(observer) &&
+      //需要迁移到lifecycle的observer进行迁移
+      if (_observers.containsKey(observer) &&
           life != null &&
-          inner._state == lState) {
-        life._observers[observer] = inner;
-        dispatcher.willRemove = _remove;
-        _observers[observer] = dispatcher;
-        // removeLifecycleObserver(observer, willEnd: LifecycleState.resumed);
-        // life._addObserverDispatcher(observer, inner);
+          inner._state == dispatcher._state) {
+        dispatcher._willToLifecycle = false;
+        if (!dispatcher._destroyWithRegistry) {
+          life._observers[observer] = inner;
+          _observers.remove(observer);
+        }
       }
     }
   }
@@ -116,6 +112,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   }
 
   void _changeToState(LifecycleState state) {
+    if (_currState == state) return;
     _currState = state;
     _onLifecycleStateChange();
   }
@@ -171,11 +168,11 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   }
 
   void deactivate() {
-    _changeToState(LifecycleState.started);
+    // _changeToState(LifecycleState.started);
   }
 
   void activate() {
-    _currState = LifecycleState.started;
+    // _currState = LifecycleState.started;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _changeToState(LifecycleState.resumed);
     });
@@ -183,29 +180,33 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
   void dispose() {
     if (_currState <= LifecycleState.destroyed) return;
-    final obs = [..._observers.values];
-    final willAddToLifecycle = obs.where((e) => e._toLifecycle);
+
+    // 如果时当前register关注的observer则执行 移动状态到destroy
+    final willDestroy =
+        [..._observers.values].where((e) => e._destroyWithRegistry);
+    if (willDestroy.isNotEmpty) {
+      final life = (_lifecycle as _LifecycleRegistryImpl);
+      for (var dispatcher in willDestroy) {
+        _LifecycleRegistryImpl._moveState(life.owner, dispatcher._dispatcher,
+            LifecycleState.destroyed, (_) => true);
+      }
+      _observers.removeWhere((k, v) => willDestroy.contains(v));
+    }
 
     //当销毁的时候还存在未绑定到lifecycle的observer，则进行直接添加到对象
+    final willAddToLifecycle =
+        [..._observers.values].where((e) => e._willToLifecycle);
     if (willAddToLifecycle.isNotEmpty) {
-      final life = lifecycle;
-      final startWith = currentLifecycleState;
-      for (var e in willAddToLifecycle) {
-        life.addLifecycleObserver(e._observer,
-            startWith: startWith, fullCycle: e._fullCycle);
+      final life = (_lifecycle as _LifecycleRegistryImpl);
+      for (var dispatcher in willAddToLifecycle) {
+        life._observers.remove(dispatcher._observer);
+        life._addObserverDispatcher(
+            dispatcher._observer, dispatcher._dispatcher);
       }
-      _observers.removeWhere((_, e) => e._toLifecycle);
+      _observers.removeWhere((k, v) => willAddToLifecycle.contains(v));
     }
 
-    _changeToState(LifecycleState.destroyed);
-    final life = _lifecycle;
-    if (life != null) {
-      final obs = [..._observers.keys];
-      for (var e in obs) {
-        life.removeLifecycleObserver(e);
-      }
-    }
-
+    _currState = LifecycleState.destroyed;
     _observers.clear();
     _parentLifecycle = null;
   }
@@ -221,9 +222,11 @@ mixin LifecycleRegistryStateMixin<W extends StatefulWidget> on State<W>
   void addLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith,
           bool fullCycle = true,
-          bool toLifecycle = false}) =>
+          bool destroyWithRegistry = true}) =>
       _delegate.addLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle, toLifecycle: toLifecycle);
+          startWith: startWith,
+          fullCycle: fullCycle,
+          destroyWithRegistry: destroyWithRegistry);
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;
@@ -277,9 +280,11 @@ mixin LifecycleRegistryElementMixin on ComponentElement
   void addLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith,
           bool fullCycle = true,
-          bool toLifecycle = false}) =>
+          bool destroyWithRegistry = true}) =>
       _delegate.addLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle, toLifecycle: toLifecycle);
+          startWith: startWith,
+          fullCycle: fullCycle,
+          destroyWithRegistry: destroyWithRegistry);
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;

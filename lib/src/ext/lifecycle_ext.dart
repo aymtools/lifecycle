@@ -39,9 +39,11 @@ mixin LifecycleObserverRegistryMixin<W extends StatefulWidget> on State<W>
   void addLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith,
           bool fullCycle = true,
-          bool toLifecycle = false}) =>
+          bool destroyWithRegistry = true}) =>
       _delegate.addLifecycleObserver(observer,
-          startWith: startWith, fullCycle: fullCycle, toLifecycle: toLifecycle);
+          startWith: startWith,
+          fullCycle: fullCycle,
+          destroyWithRegistry: destroyWithRegistry);
 
   @override
   LifecycleState get currentLifecycleState => _delegate.currentLifecycleState;

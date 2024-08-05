@@ -71,9 +71,10 @@ class _LifecycleOwnerElement extends StatefulElement {
     if (_lifecycle.currentLifecycleState < LifecycleState.created) {
       _lifecycle.handleLifecycleEvent(LifecycleEvent.create);
     }
-
-    final parentLifecycle =
-        parent?.findAncestorWidgetOfExactType<_EffectiveLifecycle>()?.lifecycle;
+    Lifecycle? parentLifecycle;
+    if (parent != null) {
+      parentLifecycle = Lifecycle.maybeOf(parent, listen: false);
+    }
     _lifecycle.bindParentLifecycle(parentLifecycle);
 
     LifecycleCallbacks.instance._onAttach(parentLifecycle, lifecycleOwner);

@@ -13,6 +13,34 @@ abstract class LifecycleRegistry implements Lifecycle {
   Set<LifecycleObserver> get observers;
 }
 
+abstract class _ObserverDispatcher {
+  final LifecycleObserver _observer;
+  LifecycleState _state;
+  bool _fullCycle;
+
+  _ObserverDispatcher._(this._observer, this._state, this._fullCycle);
+
+  factory _ObserverDispatcher(
+      LifecycleState state, LifecycleObserver observer, bool fullCycle) {
+    if (observer is LifecycleStateChangeObserver) {
+      return _ObserverDispatcher.state(state, observer, fullCycle);
+    } else if (observer is LifecycleEventObserver) {
+      return _ObserverDispatcher.event(state, observer, fullCycle);
+    }
+    throw 'observer is not LifecycleStateChangeObserver or LifecycleEventObserver';
+  }
+
+  factory _ObserverDispatcher.state(LifecycleState state,
+          LifecycleStateChangeObserver observer, bool fullCycle) =>
+      _StateObserverDispatcher(observer, state, fullCycle);
+
+  factory _ObserverDispatcher.event(LifecycleState state,
+          LifecycleEventObserver observer, bool fullCycle) =>
+      _EventObserverDispatcher(observer, state, fullCycle);
+
+  void dispatchEvent(LifecycleOwner owner, LifecycleEvent event);
+}
+
 class _LifecycleRegistryImpl extends LifecycleRegistry {
   final LifecycleOwner provider;
 
@@ -60,7 +88,7 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
           willEnd = LifecycleState.resumed;
         }
       }
-      if (dispatcher is _NoObserverDispatcher) {
+      if (dispatcher is _ProxyObserverDispatcher) {
         dispatcher.willRemove.call(this, dispatcher._observer, willEnd);
       } else {
         if (willEnd.index < dispatcher._state.index) {
@@ -213,46 +241,7 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
   }
 }
 
-abstract class _ObserverDispatcher {
-  final LifecycleObserver _observer;
-  LifecycleState _state;
-  bool _fullCycle;
-
-  _ObserverDispatcher._(this._observer, this._state, this._fullCycle);
-
-  factory _ObserverDispatcher(
-      LifecycleState state, LifecycleObserver observer, bool fullCycle) {
-    if (observer is LifecycleStateChangeObserver) {
-      return _ObserverDispatcher.state(state, observer, fullCycle);
-    } else if (observer is LifecycleEventObserver) {
-      return _ObserverDispatcher.event(state, observer, fullCycle);
-    }
-    throw 'observer is not LifecycleStateChangeObserver or LifecycleEventObserver';
-  }
-
-  factory _ObserverDispatcher.state(LifecycleState state,
-          LifecycleStateChangeObserver observer, bool fullCycle) =>
-      _StateObserverDispatcher(observer, state, fullCycle);
-
-  factory _ObserverDispatcher.event(LifecycleState state,
-          LifecycleEventObserver observer, bool fullCycle) =>
-      _EventObserverDispatcher(observer, state, fullCycle);
-
-  factory _ObserverDispatcher.no(
-          LifecycleState state,
-          LifecycleObserver observer,
-          bool fullCycle,
-          void Function(Lifecycle lifecycle, LifecycleObserver observer,
-                  LifecycleState willEnd)
-              willRemove,
-          bool toLifecycle) =>
-      _NoObserverDispatcher(
-          observer, state, fullCycle, willRemove, toLifecycle);
-
-  void dispatchEvent(LifecycleOwner owner, LifecycleEvent event);
-}
-
-class _NoObserverDispatcher extends _ObserverDispatcher {
+class _ProxyObserverDispatcher extends _ObserverDispatcher {
   void Function(
     Lifecycle lifecycle,
     LifecycleObserver observer,
@@ -260,15 +249,22 @@ class _NoObserverDispatcher extends _ObserverDispatcher {
   ) willRemove;
 
   final _ObserverDispatcher _dispatcher;
-  final bool _toLifecycle;
 
-  _NoObserverDispatcher(super.observer, super.state, super.fullCycle,
-      this.willRemove, this._toLifecycle)
+  bool _willToLifecycle = true;
+  final bool _destroyWithRegistry;
+
+  _ProxyObserverDispatcher(super.observer, super.state, super.fullCycle,
+      this.willRemove, this._destroyWithRegistry)
       : _dispatcher = _ObserverDispatcher(state, observer, fullCycle),
         super._();
 
   @override
-  void dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {}
+  void dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
+    if (!_willToLifecycle) {
+      _dispatcher._state = _state;
+      _dispatcher.dispatchEvent(owner, event);
+    }
+  }
 }
 
 class _StateObserverDispatcher extends _ObserverDispatcher {
