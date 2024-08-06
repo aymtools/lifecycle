@@ -80,8 +80,9 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       final inner = _LifecycleRegistryImpl._moveState(
           owner, dispatcher._dispatcher, toState, check);
 
-      //需要迁移到lifecycle的observer进行迁移
-      if (_observers.containsKey(observer) &&
+      if (dispatcher._state > LifecycleState.destroyed &&
+          toState > LifecycleState.destroyed &&
+          _observers.containsKey(observer) &&
           life != null &&
           inner._state == dispatcher._state) {
         dispatcher._willToLifecycle = false;
@@ -122,13 +123,33 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
   set _parentLifecycle(Lifecycle? lifecycle) {
     final state = currentLifecycleState;
-    _lifecycle?.removeLifecycleObserver(_parentStateChanger,
-        willEnd: LifecycleState.resumed);
+    Lifecycle? life = _lifecycle;
+
+    if (life != null) {
+      life.removeLifecycleObserver(_parentStateChanger,
+          willEnd: LifecycleState.resumed);
+      if (lifecycle == null) {
+        // 为什么会走到这里？？？？
+        assert(false, '为什么会走到这里？？？？');
+        dispose();
+        return;
+      } else {
+        (life as _LifecycleRegistryImpl)
+            ._observers
+            .removeWhere((k, v) => _observers.containsKey(k));
+      }
+    }
 
     _lifecycle = lifecycle;
 
-    _lifecycle?.addLifecycleObserver(_parentStateChanger,
-        startWith: state, fullCycle: true);
+    if (lifecycle != null) {
+      lifecycle.addLifecycleObserver(_parentStateChanger,
+          startWith: state, fullCycle: true);
+      final li = (lifecycle as _LifecycleRegistryImpl);
+      _observers.forEach((k, v) {
+        li._addObserverDispatcher(k, v);
+      });
+    }
   }
 
   void _onLifecycleStateChange() => _moveState([..._observers.values],
@@ -186,6 +207,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
         [..._observers.values].where((e) => e._destroyWithRegistry);
     if (willDestroy.isNotEmpty) {
       final life = (_lifecycle as _LifecycleRegistryImpl);
+      life._observers.removeWhere((k, v) => willDestroy.contains(v));
       for (var dispatcher in willDestroy) {
         _LifecycleRegistryImpl._moveState(life.owner, dispatcher._dispatcher,
             LifecycleState.destroyed, (_) => true);
@@ -208,7 +230,8 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
     _currState = LifecycleState.destroyed;
     _observers.clear();
-    _parentLifecycle = null;
+    _lifecycle?.removeLifecycleObserver(_parentStateChanger);
+    _lifecycle = null;
   }
 }
 
