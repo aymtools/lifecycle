@@ -103,6 +103,18 @@ extension LifecycleRegistryProviderSupprot on LifecycleRegistry {
   LifecycleOwner get provider => owner;
 }
 
+extension LifecycleConvertExt on ILifecycle {
+  Lifecycle toLifecycle() {
+    if (this is Lifecycle) return (this as Lifecycle);
+    return (this as ILifecycleRegistry).lifecycle;
+  }
+
+  ILifecycleRegistry toLifecycleRegistry() {
+    if (this is ILifecycleRegistry) return (this as ILifecycleRegistry);
+    return (this as Lifecycle).owner;
+  }
+}
+
 class LifecycleEventObserverStream with LifecycleEventObserver {
   late final StreamController<LifecycleEvent> _controller =
       StreamController<LifecycleEvent>.broadcast(sync: true);
