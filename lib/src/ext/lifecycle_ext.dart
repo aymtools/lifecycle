@@ -17,15 +17,18 @@ typedef LifecycleObserverRegisterMixin<W extends StatefulWidget>
 typedef LifecycleObserverRegistryElementMixin = LifecycleRegistryElementMixin;
 
 extension LifecycleObserverRegisterSupport on ILifecycleRegistry {
+  @Deprecated('use addLifecycleObserver')
   void registerLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith, bool fullCycle = true}) =>
       addLifecycleObserver(observer,
           startWith: startWith, fullCycle: fullCycle);
 
+  @Deprecated('use addLifecycleObserverToOwner')
   void registerLifecycleObserverToOwner<LO extends LifecycleOwner>(
           LifecycleObserver observer,
           [bool cycleCompanionOwner = false]) =>
-      addLifecycleObserverToOwner(observer, cycleCompanionOwner);
+      addLifecycleObserverToOwner(observer,
+          cycleCompanionOwner: cycleCompanionOwner);
 }
 
 @Deprecated('use LifecycleRegistryStateMixin')
@@ -170,18 +173,20 @@ class _LifecycleObserverAddToOwner<LO extends LifecycleOwner>
     implements LifecycleStateChangeObserver {
   final LifecycleObserver _observer;
   final bool _cycleCompanionOwner;
+  final bool Function(LO)? test;
+
   Lifecycle? _target;
 
-  _LifecycleObserverAddToOwner(this._observer,
-      [this._cycleCompanionOwner = false]);
+  _LifecycleObserverAddToOwner(
+      this._observer, this._cycleCompanionOwner, this.test);
 
   @override
   void onStateChange(LifecycleOwner owner, LifecycleState state) {
     if (state == LifecycleState.destroyed) {
       if (_target != null && !_cycleCompanionOwner) {
         _target?.removeObserver(_observer);
-        return;
       }
+      return;
     }
     if (_target != null) {
       Lifecycle? t = owner.lifecycle;
@@ -194,25 +199,43 @@ class _LifecycleObserverAddToOwner<LO extends LifecycleOwner>
     }
     LifecycleOwner? find = owner._findOwner<LO>();
     var start = _target?.currentState ?? LifecycleState.destroyed;
-    _target?.removeObserver(_observer);
+    _target?.removeLifecycleObserver(_observer, fullCycle: false);
     if (find == null) {
       // 找不到目标
     } else if (find.lifecycle.currentState > LifecycleState.destroyed) {
       // 找到目标且未销毁时进行注册
       _target = find.lifecycle;
-      find.lifecycle.addObserver(_observer, start);
+      find.lifecycle
+          .addLifecycleObserver(_observer, startWith: start, fullCycle: true);
     }
   }
 }
 
 extension _LifecycleOwnerFinder on LifecycleOwner {
-  LifecycleOwner? _findOwner<LO extends LifecycleOwner>() {
+  LifecycleOwner? _findOwner<LO extends LifecycleOwner>(
+      {bool Function(LO)? test}) {
     LifecycleOwner? find = this;
-    while (find != null && find is! LO) {
+    if (test != null) {
+      while (find != null) {
+        if (find is LO && test(find)) {
+          return find;
+        }
+        var parent = find.lifecycle.parent;
+        if (parent != null) {
+          find = parent.owner;
+        } else {
+          find = null;
+          break;
+        }
+      }
+      return null;
+    }
+
+    while (find != null) {
+      if (find is LO) {
+        return find;
+      }
       var parent = find.lifecycle.parent;
-      // while (parent != null && parent is! LifecycleRegistry) {
-      //   parent = parent.parent;
-      // }
       if (parent != null) {
         find = parent.owner;
       } else {
@@ -220,7 +243,7 @@ extension _LifecycleOwnerFinder on LifecycleOwner {
         break;
       }
     }
-    return find;
+    return null;
   }
 }
 
@@ -253,9 +276,11 @@ extension LifecycleObserverRegistryMixinExt on ILifecycleRegistry {
 
   void addLifecycleObserverToOwner<LO extends LifecycleOwner>(
       LifecycleObserver observer,
-      [bool cycleCompanionOwner = false]) {
-    var o = _LifecycleObserverAddToOwner<LO>(observer, cycleCompanionOwner);
-    addLifecycleObserver(o);
+      {bool cycleCompanionOwner = false,
+      bool Function(LO)? test}) {
+    var o =
+        _LifecycleObserverAddToOwner<LO>(observer, cycleCompanionOwner, test);
+    addLifecycleObserver(o, fullCycle: true);
   }
 }
 
