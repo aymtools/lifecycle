@@ -84,8 +84,8 @@ class _LifecycleObserverAddToOwner<LO extends LifecycleOwner>
     if (state == LifecycleState.destroyed) {
       if (_target != null && !_cycleCompanionOwner) {
         _target?.removeObserver(_observer);
-        return;
       }
+      return;
     }
     if (_target != null) {
       Lifecycle? t = owner.lifecycle;
