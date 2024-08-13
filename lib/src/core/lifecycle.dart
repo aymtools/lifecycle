@@ -7,7 +7,7 @@ part 'lifecycle_callback.dart';
 part 'lifecycle_dispatcher.dart';
 part 'lifecycle_owner.dart';
 part 'lifecycle_proxy_observers.dart';
-part 'lifecycle_proxy_registry.dart';
+part 'lifecycle_registry_state_delegate.dart';
 part 'lifecycle_registry_mixin.dart';
 
 ///生命周期的事件

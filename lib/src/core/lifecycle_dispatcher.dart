@@ -3,6 +3,7 @@ part of 'lifecycle.dart';
 LifecycleState _minState(LifecycleState state, LifecycleState state1) =>
     LifecycleState.values[min(state.index, state1.index)];
 
+/// 兼容旧版本 未来将会移除此类直接使用内部类 不在导出
 abstract class LifecycleRegistry implements Lifecycle {
   void bindParentLifecycle(Lifecycle? parent);
 

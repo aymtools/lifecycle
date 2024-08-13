@@ -2,6 +2,7 @@ part of 'lifecycle.dart';
 
 const _lifecycleOwnerBuildReturn = SizedBox.shrink();
 
+/// LifecycleOwner的寄存管理widget
 abstract class LifecycleOwnerWidget extends StatefulWidget {
   final Widget child;
   final dynamic scope;
@@ -130,11 +131,13 @@ class _LifecycleOwnerElement extends StatefulElement {
   }
 }
 
+/// 用来管理 lifecycleRegistry 的 state
 abstract class LifecycleOwnerState<LOW extends LifecycleOwnerWidget>
     extends State<LOW> implements LifecycleOwner {
   set lifecycleRegistry(LifecycleRegistry registry);
 }
 
+/// 可混入 快速管理 使用 [lifecycleRegistry]
 mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
     implements LifecycleOwnerState<LOW> {
   late final LifecycleRegistry _lifecycleRegistry;

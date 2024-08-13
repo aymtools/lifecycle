@@ -247,7 +247,7 @@ extension _LifecycleOwnerFinder on LifecycleOwner {
   }
 }
 
-extension LifecycleObserverRegistryMixinExt on ILifecycleRegistry {
+extension LifecycleRegistryMixinExt on ILifecycleRegistry {
   Future<LifecycleEvent> nextLifecycleEvent(LifecycleEvent event) {
     var observer = LifecycleEventObserverStream();
     addLifecycleObserver(observer, startWith: currentLifecycleState);
@@ -285,6 +285,7 @@ extension LifecycleObserverRegistryMixinExt on ILifecycleRegistry {
 }
 
 extension<T> on Stream<T> {
+  /// 同步的firstWhere
   Future<T> firstWhereSync(bool Function(T element) test,
       {bool ignoreNoElement = true, T Function()? orElse}) {
     Completer<T> completer = Completer.sync();
