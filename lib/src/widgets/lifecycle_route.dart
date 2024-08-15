@@ -17,11 +17,6 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
   bool get customDispatchEvent => true;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
@@ -101,8 +96,10 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
 
 class LifecycleRouteOwner extends LifecycleOwnerWidget {
   final Route? route;
+  final bool wantKeepAlive;
 
-  const LifecycleRouteOwner({this.route, super.key, required super.child});
+  const LifecycleRouteOwner(
+      {this.route, super.key, required super.child, this.wantKeepAlive = true});
 
   @override
   LifecycleRouteOwnerState<LifecycleRouteOwner> createState() =>
@@ -115,7 +112,7 @@ class _LifecycleRouteState extends State<LifecycleRouteOwner>
         LifecycleOwnerStateMixin,
         LifecycleRouteOwnerState {
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => widget.wantKeepAlive;
 
   @override
   Widget build(BuildContext context) {

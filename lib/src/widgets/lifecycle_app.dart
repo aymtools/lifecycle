@@ -22,6 +22,8 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
       case AppLifecycleState.detached:
         _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.destroy);
         break;
+      default:
+        break;
     }
   }
 }

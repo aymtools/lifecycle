@@ -13,7 +13,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage>
-    with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
+    with LifecycleRegistryStateMixin, LifecycleEventPrinter {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

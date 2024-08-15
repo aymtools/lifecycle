@@ -11,7 +11,7 @@ class FistPage extends StatefulWidget {
 }
 
 class _FistPageState extends State<FistPage>
-    with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
+    with LifecycleRegistryStateMixin, LifecycleEventPrinter {
   @override
   Widget build(BuildContext context) {
     print('FistPage build');

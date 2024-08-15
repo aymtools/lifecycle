@@ -11,7 +11,7 @@ class PageViewExample extends StatefulWidget {
 }
 
 class _PageViewExampleState extends State<PageViewExample>
-    with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
+    with LifecycleRegistryStateMixin, LifecycleEventPrinter {
   final PageController _pageController = PageController(initialPage: 2);
 
   @override
@@ -43,7 +43,7 @@ class ItemView extends StatefulWidget {
 }
 
 class _ItemViewState extends State<ItemView>
-    with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
+    with LifecycleRegistryStateMixin, LifecycleEventPrinter {
   @override
   String get otherTag => 'Page index ${widget.index}';
 

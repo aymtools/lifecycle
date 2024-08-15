@@ -11,7 +11,7 @@ class SecondPage extends StatefulWidget {
 }
 
 class _SecondPageState extends State<SecondPage>
-    with LifecycleObserverRegistryMixin, LifecycleEventPrinter {
+    with LifecycleRegistryStateMixin, LifecycleEventPrinter {
   @override
   Widget build(BuildContext context) {
     print('SecondPage build');
