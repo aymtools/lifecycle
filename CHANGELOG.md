@@ -1,3 +1,8 @@
+## 3.0.1
+
+- In the implementation of ILifecycleRegistry, allow calling addLifecycleObserver in the
+  constructor.
+
 ## 3.0.0
 
 - Refactored the `registry` content to ensure that the timing of invocations during `registry`

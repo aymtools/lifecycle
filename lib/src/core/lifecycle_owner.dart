@@ -35,17 +35,14 @@ class _EffectiveLifecycle extends InheritedWidget {
 }
 
 class _LifecycleOwnerElement extends StatefulElement {
-  late final LifecycleRegistry _lifecycle =
-      _LifecycleRegistryImpl(lifecycleOwner);
+  LifecycleRegistry get _lifecycle => lifecycleOwner.lifecycleRegistry;
 
   @override
   LifecycleOwnerWidget get widget => super.widget as LifecycleOwnerWidget;
 
   LifecycleOwnerState get lifecycleOwner => state as LifecycleOwnerState;
 
-  _LifecycleOwnerElement(LifecycleOwnerWidget super.widget) {
-    lifecycleOwner.lifecycleRegistry = _lifecycle;
-  }
+  _LifecycleOwnerElement(LifecycleOwnerWidget super.widget);
 
   bool _isFirstBuild = true;
 
@@ -133,19 +130,13 @@ class _LifecycleOwnerElement extends StatefulElement {
 
 /// 用来管理 lifecycleRegistry 的 state
 abstract class LifecycleOwnerState<LOW extends LifecycleOwnerWidget>
-    extends State<LOW> implements LifecycleOwner {
-  set lifecycleRegistry(LifecycleRegistry registry);
-}
+    extends State<LOW> implements LifecycleOwner {}
 
 /// 可混入 快速管理 使用 [lifecycleRegistry]
 mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
     implements LifecycleOwnerState<LOW> {
-  late final LifecycleRegistry _lifecycleRegistry;
-
-  @override
-  set lifecycleRegistry(LifecycleRegistry registry) {
-    _lifecycleRegistry = registry;
-  }
+  late final LifecycleRegistry _lifecycleRegistry =
+      _LifecycleRegistryImpl(this);
 
   @override
   @protected

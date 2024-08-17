@@ -104,8 +104,7 @@ class _TargetLifecycleCallback {
     LifecycleCallbacks.instance.addRegistryAttachCallback(onRegistryAttach);
     LifecycleCallbacks.instance.addRegistryDetachCallback(onRegistryDetach);
 
-    owner.lifecycle
-        .addLifecycleObserver(LifecycleObserver.onEventDestroy((owner) {
+    owner.addLifecycleObserver(LifecycleObserver.onEventDestroy((owner) {
       _targetCallback.remove(owner);
       LifecycleCallbacks.instance._ownerAttachCallbacks.remove(onOwnerAttach);
       LifecycleCallbacks.instance._ownerDetachCallbacks.remove(onOwnerDetach);
@@ -195,7 +194,7 @@ final Map<LifecycleOwner, _TargetLifecycleCallback> _targetCallback = {};
 
 extension LifecycleCallbackManager on LifecycleOwner {
   void addOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
-    assert(lifecycle.currentLifecycleState > LifecycleState.destroyed,
+    assert(currentLifecycleState > LifecycleState.initialized,
         'Must add after the LifecycleState.initialized.');
     _TargetLifecycleCallback.of(this).addOwnerAttachCallback(callback);
   }
@@ -205,7 +204,7 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void addOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
-    assert(lifecycle.currentLifecycleState > LifecycleState.destroyed,
+    assert(currentLifecycleState > LifecycleState.initialized,
         'Must add after the LifecycleState.initialized.');
     _TargetLifecycleCallback.of(this).addOwnerDetachCallback(callback);
   }
@@ -215,7 +214,7 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void addRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
-    assert(lifecycle.currentLifecycleState > LifecycleState.destroyed,
+    assert(currentLifecycleState > LifecycleState.initialized,
         'Must add after the LifecycleState.initialized.');
     _TargetLifecycleCallback.of(this).addRegistryAttachCallback(callback);
   }
@@ -226,7 +225,7 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void addRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
-    assert(lifecycle.currentLifecycleState > LifecycleState.destroyed,
+    assert(currentLifecycleState > LifecycleState.initialized,
         'Must add after the LifecycleState.initialized.');
     _TargetLifecycleCallback.of(this).addRegistryDetachCallback(callback);
   }
