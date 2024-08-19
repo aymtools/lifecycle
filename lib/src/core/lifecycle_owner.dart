@@ -35,12 +35,17 @@ class _EffectiveLifecycle extends InheritedWidget {
 }
 
 class _LifecycleOwnerElement extends StatefulElement {
+  LifecycleOwnerState? _owner;
+
   LifecycleRegistry get _lifecycle => lifecycleOwner.lifecycleRegistry;
 
   @override
   LifecycleOwnerWidget get widget => super.widget as LifecycleOwnerWidget;
 
-  LifecycleOwnerState get lifecycleOwner => state as LifecycleOwnerState;
+  LifecycleOwnerState get lifecycleOwner {
+    _owner ??= state as LifecycleOwnerState;
+    return _owner!;
+  }
 
   _LifecycleOwnerElement(LifecycleOwnerWidget super.widget);
 
@@ -118,13 +123,14 @@ class _LifecycleOwnerElement extends StatefulElement {
 
   @override
   void unmount() {
-    _lifecycle.handleLifecycleEvent(LifecycleEvent.destroy);
-    if (_lifecycle.parent != null) {
-      LifecycleCallbacks.instance._onDetach(_lifecycle.parent!, lifecycleOwner);
-      _lifecycle.bindParentLifecycle(null);
+    final l=_lifecycle;
+    l.handleLifecycleEvent(LifecycleEvent.destroy);
+    if (l.parent != null) {
+      LifecycleCallbacks.instance._onDetach(l.parent!, lifecycleOwner);
+      l.bindParentLifecycle(null);
     }
     super.unmount();
-    _lifecycle.clearObserver();
+    l.clearObserver();
   }
 }
 
