@@ -1,3 +1,7 @@
+## 3.0.2
+
+- Fix the exception where the observer of LifecycleRegistryState calls remove during destroy.
+
 ## 3.0.1
 
 - In the implementation of ILifecycleRegistry, allow calling addLifecycleObserver in the

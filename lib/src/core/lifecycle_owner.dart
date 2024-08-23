@@ -123,7 +123,7 @@ class _LifecycleOwnerElement extends StatefulElement {
 
   @override
   void unmount() {
-    final l=_lifecycle;
+    final l = _lifecycle;
     l.handleLifecycleEvent(LifecycleEvent.destroy);
     if (l.parent != null) {
       LifecycleCallbacks.instance._onDetach(l.parent!, lifecycleOwner);

@@ -194,8 +194,8 @@ final Map<LifecycleOwner, _TargetLifecycleCallback> _targetCallback = {};
 
 extension LifecycleCallbackManager on LifecycleOwner {
   void addOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
-    assert(currentLifecycleState > LifecycleState.initialized,
-        'Must add after the LifecycleState.initialized.');
+    assert(currentLifecycleState > LifecycleState.destroyed,
+        'Must add after the LifecycleState.destroyed.');
     _TargetLifecycleCallback.of(this).addOwnerAttachCallback(callback);
   }
 
@@ -204,8 +204,8 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void addOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
-    assert(currentLifecycleState > LifecycleState.initialized,
-        'Must add after the LifecycleState.initialized.');
+    assert(currentLifecycleState > LifecycleState.destroyed,
+        'Must add after the LifecycleState.destroyed.');
     _TargetLifecycleCallback.of(this).addOwnerDetachCallback(callback);
   }
 
@@ -214,8 +214,8 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void addRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {
-    assert(currentLifecycleState > LifecycleState.initialized,
-        'Must add after the LifecycleState.initialized.');
+    assert(currentLifecycleState > LifecycleState.destroyed,
+        'Must add after the LifecycleState.destroyed.');
     _TargetLifecycleCallback.of(this).addRegistryAttachCallback(callback);
   }
 
@@ -225,8 +225,8 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void addRegistryDetachCallback(LifecycleRegistryDetachCallback callback) {
-    assert(currentLifecycleState > LifecycleState.initialized,
-        'Must add after the LifecycleState.initialized.');
+    assert(currentLifecycleState > LifecycleState.destroyed,
+        'Must add after the LifecycleState.destroyed.');
     _TargetLifecycleCallback.of(this).addRegistryDetachCallback(callback);
   }
 

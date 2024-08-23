@@ -125,7 +125,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   @override
   void removeLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? willEnd, bool? fullCycle}) {
-    lifecycle.removeLifecycleObserver(observer,
+    _lifecycle?.removeLifecycleObserver(observer,
         willEnd: willEnd, fullCycle: fullCycle);
     _observers.remove(observer);
   }
