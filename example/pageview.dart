@@ -20,11 +20,10 @@ class _PageViewExampleState extends State<PageViewExample>
       appBar: AppBar(
         title: const Text('PageViewExample'),
       ),
-      body: PageView(
+      body: LifecyclePageView(
         controller: _pageController,
         children: [
-          for (int i = 0; i < 9; i++)
-            LifecyclePageViewItem(index: i, child: ItemView(index: i))
+          for (int i = 0; i < 9; i++) ItemView(index: i),
         ],
         // itemCount: 10,
         // itemBuilder: (context, index) => ItemView(index: index),

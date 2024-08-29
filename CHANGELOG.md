@@ -1,3 +1,7 @@
+## 3.0.3
+
+- Optimize the README content and update the example to version 3.0.
+
 ## 3.0.2
 
 - Fix the exception where the observer of LifecycleRegistryState calls remove during destroy.
