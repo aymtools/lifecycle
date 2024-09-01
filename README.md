@@ -167,7 +167,8 @@ class FistPage extends StatefulWidget {
   State<FistPage> createState() => _FistPageState();
 }
 
-/// Mix-n LifecycleRegistryStateMixin are available, but it's highly recommended to use the [an_lifecycle_cancellable] package's launchWhenXXX, repeatOnXXX, and collectOnXXX methods.
+/// Mixin LifecycleRegistryStateMixin are available, 
+/// but it's highly recommended to use the [an_lifecycle_cancellable] package's launchWhenXXX, repeatOnXXX, and collectOnXXX methods.
 class _FistPageState extends State<FistPage>
     with LifecycleRegistryStateMixin {
 
