@@ -1,3 +1,7 @@
+## 3.0.4
+
+- Fix _HookOverlayEntry(`LifecycleNavigatorObserver.hookMode()`) passing opaque
+
 ## 3.0.3
 
 - Optimize the README content and update the example to version 3.0.

@@ -191,6 +191,7 @@ class LifecycleHookObserver extends LifecycleNavigatorObserver {
       entries[index] = _HookOverlayEntry(
           builder: needHook.builder,
           maintainState: needHook.maintainState,
+          opaque: needHook.opaque,
           route: route);
     }
   }
@@ -207,9 +208,7 @@ Widget Function(BuildContext) _hookBuilder(
     Widget Function(BuildContext) source, ModalRoute route) {
   return (context) => LifecycleRouteOwner(
         route: route,
-        child: Builder(
-          builder: source,
-        ),
+        child: Builder(builder: source),
       );
 }
 
@@ -224,4 +223,7 @@ class _HookOverlayEntry extends OverlayEntry {
 
   @override
   bool get maintainState => route.maintainState;
+
+  @override
+  bool get opaque => route.opaque;
 }
