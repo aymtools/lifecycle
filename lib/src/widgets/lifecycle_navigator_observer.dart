@@ -188,11 +188,9 @@ class LifecycleHookObserver extends LifecycleNavigatorObserver {
     if (find == null && entries.isNotEmpty) {
       int index = entries.length > 1 ? 1 : 0;
       final needHook = entries[index];
-      entries[index] = _HookOverlayEntry(
-          builder: needHook.builder,
-          maintainState: needHook.maintainState,
-          opaque: needHook.opaque,
-          route: route);
+      assert(needHook.runtimeType == OverlayEntry,
+          'When customizing createOverlayEntries, please use LifecycleRouteMixin. doNotHookMe=true');
+      entries[index] = _HookOverlayEntry(source: needHook, route: route);
     }
   }
 }
@@ -213,17 +211,39 @@ Widget Function(BuildContext) _hookBuilder(
 }
 
 class _HookOverlayEntry extends OverlayEntry {
+  final OverlayEntry source;
+
   _HookOverlayEntry({
     required this.route,
-    required Widget Function(BuildContext) builder,
-    super.opaque,
-    super.maintainState,
-  }) : super(builder: _hookBuilder(builder, route));
+    required this.source,
+  }) : super(
+            builder: _hookBuilder(source.builder, route),
+            maintainState: route.maintainState,
+            opaque: route.opaque);
   final ModalRoute route;
 
   @override
-  bool get maintainState => route.maintainState;
+  bool get maintainState => source.maintainState;
 
   @override
-  bool get opaque => route.opaque;
+  set maintainState(bool value) {
+    source.maintainState = value;
+    markNeedsBuild();
+  }
+
+  @override
+  bool get opaque => source.opaque;
+
+  @override
+  set opaque(bool value) {
+    source.opaque = value;
+    markNeedsBuild();
+  }
+
+  @override
+  void markNeedsBuild() {
+    source.markNeedsBuild();
+    super.markNeedsBuild();
+  }
+
 }
