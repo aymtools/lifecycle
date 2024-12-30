@@ -19,7 +19,7 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
 
   LifecycleNavigatorObserver();
 
-  /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求) 可以配合[LifecycleRouteMixin]来跳过hook自定义分发，也可以直接使用默认构造函数完全自定义你的route状态
+  /// 可以配合[LifecycleRouteMixin]来跳过hook自定义分发，也可以直接使用默认构造函数完全自定义你的route状态
   factory LifecycleNavigatorObserver.hookMode() => LifecycleHookObserver();
 
   void _subscribe(_RouteChanger changer) {
@@ -196,7 +196,6 @@ class LifecycleHookObserver extends LifecycleNavigatorObserver {
 }
 
 mixin LifecycleRouteMixin<T> on OverlayRoute<T> {
-  /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求) 如需要在执行的过程中动态变化 使用此混入关闭hook进行定制
   /// 如需穿透当前的route 则不需要任何处理
   /// 如需要自定义lifecycle 推荐按使用 在buildPage中返回 LifecycleRoute包裹的widget
   bool doNotHookMe = false;
@@ -218,8 +217,8 @@ class _HookOverlayEntry extends OverlayEntry {
     required this.source,
   }) : super(
             builder: _hookBuilder(source.builder, route),
-            maintainState: route.maintainState,
-            opaque: route.opaque);
+            maintainState: source.maintainState,
+            opaque: source.opaque);
   final ModalRoute route;
 
   @override
@@ -234,6 +233,15 @@ class _HookOverlayEntry extends OverlayEntry {
   @override
   bool get opaque => source.opaque;
 
+  // 兼容高版本的内容
+  bool get canSizeOverlay {
+    try {
+      return (source as dynamic).canSizeOverlay;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   set opaque(bool value) {
     source.opaque = value;
@@ -245,5 +253,4 @@ class _HookOverlayEntry extends OverlayEntry {
     source.markNeedsBuild();
     super.markNeedsBuild();
   }
-
 }
