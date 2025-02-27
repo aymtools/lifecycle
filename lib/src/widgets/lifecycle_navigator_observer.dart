@@ -234,6 +234,8 @@ class _HookOverlayEntry extends OverlayEntry {
   bool get opaque => source.opaque;
 
   // 兼容高版本的内容
+  // 编译时保持名字不要混淆
+  @pragma('vm:keep-name')
   bool get canSizeOverlay {
     try {
       return (source as dynamic).canSizeOverlay;

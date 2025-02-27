@@ -1,3 +1,7 @@
+## 3.1.1
+
+- LifecycleNavigatorObserver.hookMode() adjusts the obfuscation retention for compatibility mode.
+
 ## 3.1.0
 
 - Fix _HookOverlayEntry(`LifecycleNavigatorObserver.hookMode()`) passing opaque
