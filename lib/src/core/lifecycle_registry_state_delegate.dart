@@ -164,9 +164,9 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       lifecycle.addLifecycleObserver(_parentStateChanger,
           startWith: state, fullCycle: true);
       final li = (lifecycle as _LifecycleRegistryImpl);
-      _observers.forEach((k, v) {
-        li._addObserverDispatcher(k, v);
-      });
+      for (var observer in [..._observers.entries]) {
+        li._addObserverDispatcher(observer.key, observer.value);
+      }
     }
   }
 
@@ -178,10 +178,12 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       _isFirstStart = true;
       _changeToState(LifecycleState.created);
       if (_willAddObservers != null) {
-        _willAddObservers?.entries.forEach((e) => addLifecycleObserver(e.key,
-            startWith: e.value.startWith,
-            fullCycle: e.value.fullCycle,
-            destroyWithRegistry: e.value.destroyWithRegistry));
+        for (var e in [..._willAddObservers!.entries]) {
+          addLifecycleObserver(e.key,
+              startWith: e.value.startWith,
+              fullCycle: e.value.fullCycle,
+              destroyWithRegistry: e.value.destroyWithRegistry);
+        }
         _willAddObservers = null;
       }
     }

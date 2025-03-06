@@ -169,9 +169,9 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
     if (_lastState == next) {
       return;
     }
-    _observers.values.toList().forEach((observer) {
+    for (var observer in [..._observers.values]) {
       _moveState(provider, observer, next, _observers.containsValue);
-    });
+    }
     _lastState = next;
   }
 
@@ -229,18 +229,46 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
       while (dispatcher._state.index > destination.index && check(dispatcher)) {
         LifecycleEvent event = _downEvent(dispatcher._state);
         dispatcher._state = _getStateAfter(event);
-        dispatcher.dispatchEvent(owner, event);
+        _dispatchEvent(dispatcher, owner, event);
       }
     } else {
       while (dispatcher._state.index < destination.index && check(dispatcher)) {
         LifecycleEvent event = _upEvent(dispatcher._state);
         dispatcher._state = _getStateAfter(event);
-        dispatcher.dispatchEvent(owner, event);
+        _dispatchEvent(dispatcher, owner, event);
       }
     }
     return dispatcher;
   }
 }
+
+void _dispatchEvent(_ObserverDispatcher dispatcher, LifecycleOwner owner,
+        LifecycleEvent event) =>
+    dispatcher.dispatchEvent(owner, event);
+
+// typedef _DispatchEvent = void Function(
+//     _ObserverDispatcher, LifecycleOwner, LifecycleEvent);
+//
+// final _DispatchEvent _dispatchEvent = () {
+//   _DispatchEvent result =
+//       (dispatcher, owner, event) => dispatcher.dispatchEvent(owner, event);
+//   assert(() {
+//     result = (dispatcher, owner, event) {
+//       try {
+//         dispatcher.dispatchEvent(owner, event);
+//       } catch (error, stack) {
+//         FlutterError.reportError(FlutterErrorDetails(
+//           exception: e,
+//           stack: stack,
+//           library: 'anlifecycle',
+//           context: ErrorDescription('dispatchEvent error'),
+//         ));
+//       }
+//     };
+//     return true;
+//   }());
+//   return result;
+// }();
 
 class _ProxyObserverDispatcher extends _ObserverDispatcher {
   void Function(

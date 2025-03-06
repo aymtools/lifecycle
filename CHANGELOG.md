@@ -1,3 +1,7 @@
+## 3.1.2
+
+- Convert forEach to for loops for better control and performance.
+
 ## 3.1.1
 
 - LifecycleNavigatorObserver.hookMode() adjusts the obfuscation retention for compatibility mode.
