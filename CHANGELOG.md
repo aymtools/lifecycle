@@ -1,3 +1,7 @@
+## 3.1.3
+
+- Fix a state transition check for the `resumed` state.
+
 ## 3.1.2
 
 - Convert forEach to for loops for better control and performance.
