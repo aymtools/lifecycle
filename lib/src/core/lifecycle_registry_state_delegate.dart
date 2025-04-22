@@ -25,6 +25,8 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
   bool _isFirstStart = true;
 
+  bool _isActivated = false;
+
   @override
   LifecycleState get currentLifecycleState => _lifecycle == null
       ? _currState
@@ -208,9 +210,10 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       }
     }
     if (isFirst) {
+      _isActivated = true;
       _changeToState(LifecycleState.started);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_currState > LifecycleState.initialized) {
+        if (_currState > LifecycleState.initialized && _isActivated) {
           _changeToState(LifecycleState.resumed);
         }
       });
@@ -218,13 +221,15 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   }
 
   void deactivate() {
-    // _changeToState(LifecycleState.started);
+    _isActivated = false;
+    //_changeToState(LifecycleState.created);
   }
 
   void activate() {
     // _currState = LifecycleState.started;
+    _isActivated = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_currState > LifecycleState.initialized) {
+      if (_currState > LifecycleState.initialized && _isActivated) {
         _changeToState(LifecycleState.resumed);
       }
     });
@@ -232,8 +237,24 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
   void dispose() {
     if (_currState <= LifecycleState.destroyed) return;
+    //当销毁的时候还存在未绑定到lifecycle的observer，则进行直接添加到对象
+    final willAddToLifecycle =
+        [..._observers.values].where((e) => e._willToLifecycle);
+    if (willAddToLifecycle.isNotEmpty) {
+      /// 先移除管理
+      _observers.removeWhere((k, v) => willAddToLifecycle.contains(v));
+      // 在添加到目标
+      final life = (_lifecycle as _LifecycleRegistryImpl);
+      for (var dispatcher in willAddToLifecycle) {
+        life._observers.remove(dispatcher._observer);
+        life._addObserverDispatcher(
+            dispatcher._observer, dispatcher._dispatcher);
+      }
+    }
 
-    // 如果时当前register关注的observer则执行 移动状态到destroy
+    _currState = LifecycleState.destroyed;
+
+    // 如果时当前register 关注的observer 则执行 移动状态到destroy
     final willDestroy =
         [..._observers.values].where((e) => e._destroyWithRegistry);
     if (willDestroy.isNotEmpty) {
@@ -243,24 +264,11 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
         _LifecycleRegistryImpl._moveState(life.owner, dispatcher._dispatcher,
             LifecycleState.destroyed, (_) => true);
       }
-      _observers.removeWhere((k, v) => willDestroy.contains(v));
+      _observers.clear();
+      // _observers.removeWhere((k, v) => willDestroy.contains(v));
     }
 
-    //当销毁的时候还存在未绑定到lifecycle的observer，则进行直接添加到对象
-    final willAddToLifecycle =
-        [..._observers.values].where((e) => e._willToLifecycle);
-    if (willAddToLifecycle.isNotEmpty) {
-      final life = (_lifecycle as _LifecycleRegistryImpl);
-      for (var dispatcher in willAddToLifecycle) {
-        life._observers.remove(dispatcher._observer);
-        life._addObserverDispatcher(
-            dispatcher._observer, dispatcher._dispatcher);
-      }
-      _observers.removeWhere((k, v) => willAddToLifecycle.contains(v));
-    }
-
-    _currState = LifecycleState.destroyed;
-    _observers.clear();
+    // _observers.clear();
     _lifecycle?.removeLifecycleObserver(_parentStateChanger);
     _lifecycle = null;
   }

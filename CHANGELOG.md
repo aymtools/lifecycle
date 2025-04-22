@@ -1,3 +1,8 @@
+## 3.1.4
+
+- In LifecycleRegistryStateDelegate, switch the state first and then execute the Observer during
+  destroy.
+
 ## 3.1.3
 
 - Fix a state transition check for the `resumed` state.
