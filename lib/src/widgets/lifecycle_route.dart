@@ -67,6 +67,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
   _scheduleHandleResumeNextFrame() {
     if (_observer == null) return;
     _doubleCheck = false;
+    if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (_doubleCheck) return;
       _doubleCheck = true;

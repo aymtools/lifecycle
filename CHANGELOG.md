@@ -1,3 +1,7 @@
+## 3.1.5
+
+- Fix the determination of the route's resumed state.
+
 ## 3.1.4
 
 - In LifecycleRegistryStateDelegate, switch the state first and then execute the Observer during
