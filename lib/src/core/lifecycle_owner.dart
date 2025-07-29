@@ -230,3 +230,16 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
 
   Widget get buildReturn => _lifecycleOwnerBuildReturn;
 }
+
+@visibleForTesting
+class MockLifecycleOwner extends LifecycleOwner {
+  @override
+  final dynamic scope;
+  @override
+  late final LifecycleRegistry lifecycleRegistry = MockLifecycleRegistry(this);
+
+  MockLifecycleOwner([this.scope]);
+
+  @override
+  Lifecycle get lifecycle => lifecycleRegistry;
+}

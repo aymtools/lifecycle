@@ -361,3 +361,8 @@ class _EventObserverDispatcher extends _ObserverDispatcher {
     _dispatchEvent(owner, event);
   }
 }
+
+@visibleForTesting
+class MockLifecycleRegistry extends _LifecycleRegistryImpl {
+  MockLifecycleRegistry(super.provider);
+}
