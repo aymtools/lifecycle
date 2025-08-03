@@ -93,6 +93,9 @@ class TestLifecycleCollectEventObserver with LifecycleEventObserver {
   void reset() {
     eventHistory.clear();
   }
+
+  List<LifecycleEvent> historySub(int start, [int? end]) =>
+      eventHistory.sublist(start, end);
 }
 
 class TestLifecycleCollectStateObserver with LifecycleStateChangeObserver {
@@ -106,4 +109,7 @@ class TestLifecycleCollectStateObserver with LifecycleStateChangeObserver {
   void reset() {
     stateHistory.clear();
   }
+
+  List<LifecycleState> historySub(int start, [int? end]) =>
+      stateHistory.sublist(start, end);
 }
