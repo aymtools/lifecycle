@@ -1,6 +1,7 @@
 ## 3.2.0
 
 - Add MockLifecycleRegistry and MockLifecycleOwner to assist with testing.
+- Add keepAlive parameter to LifecyclePageViewItem, LifecyclePageView, and LifecycleTabBarView.
 
 ## 3.1.5
 

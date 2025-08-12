@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 
 class LifecyclePageViewItem extends LifecycleOwnerWidget {
   final int index;
+  final bool keepAlive;
 
   const LifecyclePageViewItem(
-      {required this.index, super.key, required super.child});
+      {super.key,
+      required this.index,
+      this.keepAlive = false,
+      required super.child});
 
   @override
   LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
@@ -14,7 +18,7 @@ class LifecyclePageViewItem extends LifecycleOwnerWidget {
 }
 
 class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
-    with LifecycleOwnerStateMixin {
+    with LifecycleOwnerStateMixin, AutomaticKeepAliveClientMixin {
   int? _lastSelectIndex;
   PageController? _controller;
 
@@ -75,14 +79,23 @@ class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
     _controller?.removeListener(_changeListener);
     super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return buildReturn;
+  }
+
+  @override
+  bool get wantKeepAlive => widget.keepAlive;
 }
 
-List<Widget> _childrenLifecycle(List<Widget> children) {
+List<Widget> _childrenLifecycle(List<Widget> children, bool itemKeepAlive) {
   if (children.isEmpty) return children;
   List<Widget> result = [];
   for (int i = 0; i < children.length; i++) {
-    final e = children[i];
-    result.add(LifecyclePageViewItem(index: i, child: e));
+    result.add(LifecyclePageViewItem(
+        index: i, keepAlive: itemKeepAlive, child: children[i]));
   }
   return result;
 }
@@ -103,7 +116,8 @@ class LifecyclePageView extends PageView {
     super.clipBehavior = Clip.hardEdge,
     super.scrollBehavior,
     super.padEnds = true,
-  }) : super(children: _childrenLifecycle(children));
+    bool itemKeepAlive = false,
+  }) : super(children: _childrenLifecycle(children, itemKeepAlive));
 
   LifecyclePageView.builder({
     super.key,
@@ -122,12 +136,14 @@ class LifecyclePageView extends PageView {
     super.clipBehavior = Clip.hardEdge,
     super.scrollBehavior,
     super.padEnds = true,
+    bool itemKeepAlive = false,
   }) : super.builder(
             itemCount: itemCount,
             itemBuilder: (context, index) {
               if (index >= itemCount) return null;
               return LifecyclePageViewItem(
                   index: index,
+                  keepAlive: itemKeepAlive,
                   child: Builder(
                       builder: (context) => itemBuilder(context, index)!));
             });
@@ -159,5 +175,6 @@ class LifecycleTabBarView extends TabBarView {
     super.dragStartBehavior = DragStartBehavior.start,
     super.viewportFraction = 1.0,
     super.clipBehavior = Clip.hardEdge,
-  }) : super(children: _childrenLifecycle(children));
+    bool itemKeepAlive = false,
+  }) : super(children: _childrenLifecycle(children, itemKeepAlive));
 }
