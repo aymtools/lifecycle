@@ -1,3 +1,7 @@
+## 3.2.1
+
+* 
+
 ## 3.2.0
 
 - Add MockLifecycleRegistry and MockLifecycleOwner to assist with testing.
