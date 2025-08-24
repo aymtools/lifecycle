@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:anlifecycle/anlifecycle.dart';
+import 'package:anlifecycle/src/core/lifecycle.dart';
 import 'package:flutter/widgets.dart';
 
 @Deprecated('use ILifecycleRegistry')

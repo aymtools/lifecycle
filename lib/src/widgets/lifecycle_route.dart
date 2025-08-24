@@ -43,7 +43,7 @@ on LifecycleOwnerStateMixin<T> implements _RouteChanger {
       return;
     }
     if (_observer == null) return;
-    if (lifecycleRegistry.currentState > LifecycleState.initialized) {
+    if (lifecycleRegistry.currentLifecycleState > LifecycleState.initialized) {
       final modalRoute = this._modalRoute;
       final isCurrent = modalRoute!.isCurrent;
       final isActive = modalRoute.isActive;
@@ -74,7 +74,7 @@ on LifecycleOwnerStateMixin<T> implements _RouteChanger {
       final modalRoute = this._modalRoute;
       final observer = _observer;
       if (observer == null || modalRoute == null) return;
-      if (lifecycleRegistry.currentState <= LifecycleState.initialized) return;
+      if (lifecycleRegistry.currentLifecycleState <= LifecycleState.initialized) return;
       final isCurrent = modalRoute.isCurrent;
       final isActive = modalRoute.isActive;
       if (isCurrent) {
