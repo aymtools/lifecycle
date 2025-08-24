@@ -43,17 +43,17 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     final nav = navigator;
     if (nav != null) {
       final history = _historyRoute[nav];
-      final vRoute = <WeakReference<Route>>[];
+      final vRoute = <Route>[];
       if (history != null && history.isNotEmpty) {
         final rHistory = history.reversed;
         for (var element in rHistory) {
-          vRoute.add(WeakReference(element));
+          vRoute.add(element);
           if (element is PageRoute && element.opaque == true) {
             break;
           }
         }
       }
-      _visibleRoutes.addAll(vRoute);
+      _visibleRoutes.addAll(vRoute.map((e) => WeakReference(e)));
 
       final listeners = _navigatorRouteChanger[nav];
       if (listeners != null && listeners.isNotEmpty) {
