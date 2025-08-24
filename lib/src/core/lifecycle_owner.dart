@@ -232,14 +232,18 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
 }
 
 @visibleForTesting
-class MockLifecycleOwner extends LifecycleOwner {
+class LifecycleOwnerMock extends LifecycleOwner {
   @override
   final dynamic scope;
   @override
-  late final LifecycleRegistry lifecycleRegistry = MockLifecycleRegistry(this);
+  late final LifecycleRegistry lifecycleRegistry = LifecycleRegistryMock(this);
 
-  MockLifecycleOwner([this.scope]);
+  LifecycleOwnerMock([this.scope]);
 
   @override
   Lifecycle get lifecycle => lifecycleRegistry;
 }
+
+@Deprecated('use LifecycleOwnerMock')
+@visibleForTesting
+typedef MockLifecycleOwner = LifecycleOwnerMock;

@@ -54,8 +54,8 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     return _lifecycle!;
   }
 
-  final HashMap<LifecycleObserver, _ProxyObserverDispatcher> _observers =
-      HashMap<LifecycleObserver, _ProxyObserverDispatcher>();
+  final HashMap<LifecycleObserver, _LifecycleObserverProxyDispatcher> _observers =
+      HashMap<LifecycleObserver, _LifecycleObserverProxyDispatcher>();
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,
@@ -73,7 +73,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       if (_observers.containsKey(observer)) return;
       final currState = currentLifecycleState;
       final state = _minState(currState, startWith ?? LifecycleState.destroyed);
-      _ProxyObserverDispatcher dispatcher = _ProxyObserverDispatcher(
+      _LifecycleObserverProxyDispatcher dispatcher = _LifecycleObserverProxyDispatcher(
           observer, state, fullCycle, _willRemove, destroyWithRegistry);
       _observers[observer] = dispatcher;
       (lifecycle as _LifecycleRegistryImpl)
@@ -86,8 +86,8 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     }
   }
 
-  void _moveState(Iterable<_ProxyObserverDispatcher> dispatchers,
-      LifecycleState toState, bool Function(_ObserverDispatcher) check) {
+  void _moveState(Iterable<_LifecycleObserverProxyDispatcher> dispatchers,
+      LifecycleState toState, bool Function(_LifecycleObserverDispatcher) check) {
     final owner = lifecycle.owner;
     final life = (_lifecycle as _LifecycleRegistryImpl?);
 

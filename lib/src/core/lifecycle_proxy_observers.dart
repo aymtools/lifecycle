@@ -1,12 +1,12 @@
 part of 'lifecycle.dart';
 
-class _ProxyLifecycleStateChangeObserver
+class _LifecycleProxyStateChangeObserver
     implements LifecycleStateChangeObserver {
   final void Function(LifecycleOwner owner, LifecycleState state)?
       onStateChanger;
   final void Function(LifecycleState state)? stateChanger;
 
-  _ProxyLifecycleStateChangeObserver({this.onStateChanger, this.stateChanger});
+  _LifecycleProxyStateChangeObserver({this.onStateChanger, this.stateChanger});
 
   @override
   void onStateChange(LifecycleOwner owner, LifecycleState state) {
@@ -15,7 +15,7 @@ class _ProxyLifecycleStateChangeObserver
   }
 }
 
-class _ProxyLifecycleEventObserver implements LifecycleEventObserver {
+class _LifecycleProxyEventObserver implements LifecycleEventObserver {
   final void Function(LifecycleOwner owner, LifecycleEvent event)? onEventAny;
   final void Function(LifecycleEvent event)? eventAny;
 
@@ -37,7 +37,7 @@ class _ProxyLifecycleEventObserver implements LifecycleEventObserver {
   final void Function(LifecycleOwner owner)? onEventDestroy;
   final void Function()? eventDestroy;
 
-  _ProxyLifecycleEventObserver(
+  _LifecycleProxyEventObserver(
       {this.onEventAny,
       this.eventAny,
       this.onEventCreate,

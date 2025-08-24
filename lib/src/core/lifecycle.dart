@@ -169,77 +169,77 @@ abstract class LifecycleObserver {
   factory LifecycleObserver.onStateChange(
           void Function(LifecycleOwner owner, LifecycleState state)
               onStateChange) =>
-      _ProxyLifecycleStateChangeObserver(onStateChanger: onStateChange);
+      _LifecycleProxyStateChangeObserver(onStateChanger: onStateChange);
 
   /// 当状态发生变化
   factory LifecycleObserver.stateChange(
           void Function(LifecycleState state) stateChange) =>
-      _ProxyLifecycleStateChangeObserver(stateChanger: stateChange);
+      _LifecycleProxyStateChangeObserver(stateChanger: stateChange);
 
   /// 当有事件发生
   factory LifecycleObserver.onEventAny(
           void Function(LifecycleOwner owner, LifecycleEvent event)
               onAnyEvent) =>
-      _ProxyLifecycleEventObserver(onEventAny: onAnyEvent);
+      _LifecycleProxyEventObserver(onEventAny: onAnyEvent);
 
   /// 当有事件发生
   factory LifecycleObserver.eventAny(
           void Function(LifecycleEvent event) anyEvent) =>
-      _ProxyLifecycleEventObserver(eventAny: anyEvent);
+      _LifecycleProxyEventObserver(eventAny: anyEvent);
 
   /// 当 create 的事件发生
   factory LifecycleObserver.onEventCreate(
           void Function(LifecycleOwner owner) onEvent) =>
-      _ProxyLifecycleEventObserver(onEventCreate: onEvent);
+      _LifecycleProxyEventObserver(onEventCreate: onEvent);
 
   /// 当 create 的事件发生
   factory LifecycleObserver.eventCreate(void Function() event) =>
-      _ProxyLifecycleEventObserver(eventCreate: event);
+      _LifecycleProxyEventObserver(eventCreate: event);
 
   /// 当 start 的事件发生
   factory LifecycleObserver.onEventStart(
           void Function(LifecycleOwner owner) onEvent) =>
-      _ProxyLifecycleEventObserver(onEventStart: onEvent);
+      _LifecycleProxyEventObserver(onEventStart: onEvent);
 
   /// 当 start 的事件发生
   factory LifecycleObserver.eventStart(void Function() event) =>
-      _ProxyLifecycleEventObserver(eventStart: event);
+      _LifecycleProxyEventObserver(eventStart: event);
 
   /// 当 resume 的事件发生
   factory LifecycleObserver.onEventResume(
           void Function(LifecycleOwner owner) onEvent) =>
-      _ProxyLifecycleEventObserver(onEventResume: onEvent);
+      _LifecycleProxyEventObserver(onEventResume: onEvent);
 
   /// 当 resume 的事件发生
   factory LifecycleObserver.eventResume(void Function() event) =>
-      _ProxyLifecycleEventObserver(eventResume: event);
+      _LifecycleProxyEventObserver(eventResume: event);
 
   /// 当 pause 的事件发生
   factory LifecycleObserver.onEventPause(
           void Function(LifecycleOwner owner) onEvent) =>
-      _ProxyLifecycleEventObserver(onEventPause: onEvent);
+      _LifecycleProxyEventObserver(onEventPause: onEvent);
 
   /// 当 pause 的事件发生
   factory LifecycleObserver.eventPause(void Function() event) =>
-      _ProxyLifecycleEventObserver(eventPause: event);
+      _LifecycleProxyEventObserver(eventPause: event);
 
   /// 当 stop 的事件发生
   factory LifecycleObserver.onEventStop(
           void Function(LifecycleOwner owner) onEvent) =>
-      _ProxyLifecycleEventObserver(onEventStop: onEvent);
+      _LifecycleProxyEventObserver(onEventStop: onEvent);
 
   /// 当 stop 的事件发生
   factory LifecycleObserver.eventStop(void Function() event) =>
-      _ProxyLifecycleEventObserver(eventStop: event);
+      _LifecycleProxyEventObserver(eventStop: event);
 
   /// 当 destroy 的事件发生
   factory LifecycleObserver.onEventDestroy(
           void Function(LifecycleOwner owner) onEvent) =>
-      _ProxyLifecycleEventObserver(onEventDestroy: onEvent);
+      _LifecycleProxyEventObserver(onEventDestroy: onEvent);
 
   /// 当 destroy 的事件发生
   factory LifecycleObserver.eventDestroy(void Function() event) =>
-      _ProxyLifecycleEventObserver(eventDestroy: event);
+      _LifecycleProxyEventObserver(eventDestroy: event);
 }
 
 /// 观察所有的事件

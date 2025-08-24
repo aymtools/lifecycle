@@ -14,30 +14,30 @@ abstract class LifecycleRegistry implements Lifecycle {
   Set<LifecycleObserver> get observers;
 }
 
-abstract class _ObserverDispatcher {
+abstract class _LifecycleObserverDispatcher {
   final LifecycleObserver _observer;
   LifecycleState _state;
   bool _fullCycle;
 
-  _ObserverDispatcher._(this._observer, this._state, this._fullCycle);
+  _LifecycleObserverDispatcher._(this._observer, this._state, this._fullCycle);
 
-  factory _ObserverDispatcher(
+  factory _LifecycleObserverDispatcher(
       LifecycleState state, LifecycleObserver observer, bool fullCycle) {
     if (observer is LifecycleStateChangeObserver) {
-      return _ObserverDispatcher.state(state, observer, fullCycle);
+      return _LifecycleObserverDispatcher.state(state, observer, fullCycle);
     } else if (observer is LifecycleEventObserver) {
-      return _ObserverDispatcher.event(state, observer, fullCycle);
+      return _LifecycleObserverDispatcher.event(state, observer, fullCycle);
     }
     throw 'observer is not LifecycleStateChangeObserver or LifecycleEventObserver';
   }
 
-  factory _ObserverDispatcher.state(LifecycleState state,
+  factory _LifecycleObserverDispatcher.state(LifecycleState state,
           LifecycleStateChangeObserver observer, bool fullCycle) =>
-      _StateObserverDispatcher(observer, state, fullCycle);
+      _LifecycleObserverStateDispatcher(observer, state, fullCycle);
 
-  factory _ObserverDispatcher.event(LifecycleState state,
+  factory _LifecycleObserverDispatcher.event(LifecycleState state,
           LifecycleEventObserver observer, bool fullCycle) =>
-      _EventObserverDispatcher(observer, state, fullCycle);
+      _LifecycleObserverEventDispatcher(observer, state, fullCycle);
 
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event);
 }
@@ -65,8 +65,9 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
   late final _parentStateChanger =
       LifecycleObserver.stateChange(_handleMaxLifecycleStateChange);
 
-  final LinkedHashMap<LifecycleObserver, _ObserverDispatcher> _observers =
-      LinkedHashMap<LifecycleObserver, _ObserverDispatcher>();
+  final LinkedHashMap<LifecycleObserver, _LifecycleObserverDispatcher>
+      _observers =
+      LinkedHashMap<LifecycleObserver, _LifecycleObserverDispatcher>();
 
   _LifecycleRegistryImpl(this.provider);
 
@@ -79,7 +80,7 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
   @override
   void removeLifecycleObserver(LifecycleObserver observer,
       {LifecycleState? willEnd, bool? fullCycle}) {
-    _ObserverDispatcher? dispatcher = _observers.remove(observer);
+    _LifecycleObserverDispatcher? dispatcher = _observers.remove(observer);
     if (dispatcher != null) {
       if (willEnd == null) {
         fullCycle ??= dispatcher._fullCycle;
@@ -89,7 +90,7 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
           willEnd = LifecycleState.resumed;
         }
       }
-      if (dispatcher is _ProxyObserverDispatcher) {
+      if (dispatcher is _LifecycleObserverProxyDispatcher) {
         dispatcher.willRemove.call(this, dispatcher._observer, willEnd);
       } else {
         if (willEnd.index < dispatcher._state.index) {
@@ -105,11 +106,11 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
         _minState(getCurrentState(), defState ?? LifecycleState.destroyed);
 
     _addObserverDispatcher(
-        observer, _ObserverDispatcher(defState, observer, fullCycle));
+        observer, _LifecycleObserverDispatcher(defState, observer, fullCycle));
   }
 
   void _addObserverDispatcher(
-      LifecycleObserver observer, _ObserverDispatcher dispatcher) {
+      LifecycleObserver observer, _LifecycleObserverDispatcher dispatcher) {
     LifecycleState current = getCurrentState();
     if (current == LifecycleState.destroyed) return;
     if (_observers.containsKey(observer)) {
@@ -218,11 +219,11 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
     }
   }
 
-  static _ObserverDispatcher _moveState(
+  static _LifecycleObserverDispatcher _moveState(
       LifecycleOwner owner,
-      _ObserverDispatcher dispatcher,
+      _LifecycleObserverDispatcher dispatcher,
       LifecycleState destination,
-      bool Function(_ObserverDispatcher) check) {
+      bool Function(_LifecycleObserverDispatcher) check) {
     LifecycleState current = dispatcher._state;
     if (current == destination) return dispatcher;
     if (current.index > destination.index) {
@@ -242,8 +243,8 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
   }
 }
 
-void _dispatchEvent(_ObserverDispatcher dispatcher, LifecycleOwner owner,
-        LifecycleEvent event) =>
+void _dispatchEvent(_LifecycleObserverDispatcher dispatcher,
+        LifecycleOwner owner, LifecycleEvent event) =>
     dispatcher.dispatchEvent(owner, event);
 
 // typedef _DispatchEvent = void Function(
@@ -270,21 +271,21 @@ void _dispatchEvent(_ObserverDispatcher dispatcher, LifecycleOwner owner,
 //   return result;
 // }();
 
-class _ProxyObserverDispatcher extends _ObserverDispatcher {
+class _LifecycleObserverProxyDispatcher extends _LifecycleObserverDispatcher {
   void Function(
     Lifecycle lifecycle,
     LifecycleObserver observer,
     LifecycleState willEnd,
   ) willRemove;
 
-  final _ObserverDispatcher _dispatcher;
+  final _LifecycleObserverDispatcher _dispatcher;
 
   bool _willToLifecycle = true;
   final bool _destroyWithRegistry;
 
-  _ProxyObserverDispatcher(super.observer, super.state, super.fullCycle,
-      this.willRemove, this._destroyWithRegistry)
-      : _dispatcher = _ObserverDispatcher(state, observer, fullCycle),
+  _LifecycleObserverProxyDispatcher(super.observer, super.state,
+      super.fullCycle, this.willRemove, this._destroyWithRegistry)
+      : _dispatcher = _LifecycleObserverDispatcher(state, observer, fullCycle),
         super._();
 
   @override
@@ -296,16 +297,16 @@ class _ProxyObserverDispatcher extends _ObserverDispatcher {
   }
 }
 
-class _StateObserverDispatcher extends _ObserverDispatcher {
-  final _EventObserverDispatcher? _eventObserver;
+class _LifecycleObserverStateDispatcher extends _LifecycleObserverDispatcher {
+  final _LifecycleObserverEventDispatcher? _eventObserver;
 
   LifecycleStateChangeObserver get _stateChangeObserver =>
       _observer as LifecycleStateChangeObserver;
 
-  _StateObserverDispatcher(
+  _LifecycleObserverStateDispatcher(
       LifecycleStateChangeObserver super.observer, super.state, super.fullCycle)
       : _eventObserver = observer is LifecycleEventObserver
-            ? _EventObserverDispatcher(
+            ? _LifecycleObserverEventDispatcher(
                 observer as LifecycleEventObserver, state, fullCycle)
             : null,
         super._();
@@ -324,11 +325,11 @@ class _StateObserverDispatcher extends _ObserverDispatcher {
   }
 }
 
-class _EventObserverDispatcher extends _ObserverDispatcher {
+class _LifecycleObserverEventDispatcher extends _LifecycleObserverDispatcher {
   LifecycleEventObserver get _eventObserver =>
       _observer as LifecycleEventObserver;
 
-  _EventObserverDispatcher(
+  _LifecycleObserverEventDispatcher(
       LifecycleEventObserver super.observer, super.state, super.fullCycle)
       : super._();
 
@@ -363,6 +364,10 @@ class _EventObserverDispatcher extends _ObserverDispatcher {
 }
 
 @visibleForTesting
-class MockLifecycleRegistry extends _LifecycleRegistryImpl {
-  MockLifecycleRegistry(super.provider);
+class LifecycleRegistryMock extends _LifecycleRegistryImpl {
+  LifecycleRegistryMock(super.provider);
 }
+
+@Deprecated('use LifecycleRegistryMock')
+@visibleForTesting
+typedef MockLifecycleRegistry = LifecycleRegistryMock;

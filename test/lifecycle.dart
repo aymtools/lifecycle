@@ -10,12 +10,12 @@ void main() {
   late Lifecycle lifecycle;
 
   setUp(() {
-    MockLifecycleOwner app = MockLifecycleOwner('app_scope');
+    LifecycleOwnerMock app = LifecycleOwnerMock('app_scope');
     appRegistry = app.lifecycleRegistry;
     appRegistry.handleLifecycleEvent(LifecycleEvent.start);
     appRegistry.handleLifecycleEvent(LifecycleEvent.resume);
 
-    MockLifecycleOwner owner = MockLifecycleOwner('test_scope');
+    LifecycleOwnerMock owner = LifecycleOwnerMock('test_scope');
     owner.lifecycleRegistry.bindParentLifecycle(app.lifecycle);
 
     lifecycleRegistry = owner.lifecycleRegistry;

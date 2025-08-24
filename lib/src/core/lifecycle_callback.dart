@@ -97,6 +97,7 @@ class _TargetLifecycleCallback {
   final Set<LifecycleRegistryAttachCallback> _registryAttachCallbacks = {};
   final Set<LifecycleRegistryDetachCallback> _registryDetachCallbacks = {};
   final LifecycleOwner owner;
+  bool _isDisposed = false;
 
   _TargetLifecycleCallback({required this.owner}) {
     LifecycleCallbacks.instance.addOwnerAttachCallback(onOwnerAttach);
@@ -104,15 +105,19 @@ class _TargetLifecycleCallback {
     LifecycleCallbacks.instance.addRegistryAttachCallback(onRegistryAttach);
     LifecycleCallbacks.instance.addRegistryDetachCallback(onRegistryDetach);
 
-    owner.addLifecycleObserver(LifecycleObserver.onEventDestroy((owner) {
-      _targetCallback.remove(owner);
-      LifecycleCallbacks.instance._ownerAttachCallbacks.remove(onOwnerAttach);
-      LifecycleCallbacks.instance._ownerDetachCallbacks.remove(onOwnerDetach);
-      LifecycleCallbacks.instance._registryAttachCallbacks
-          .remove(onRegistryAttach);
-      LifecycleCallbacks.instance._registryDetachCallbacks
-          .remove(onRegistryDetach);
-    }));
+    owner.addLifecycleObserver(LifecycleObserver.eventDestroy(_dispose));
+  }
+
+  void _dispose() {
+    if (_isDisposed) return;
+    _isDisposed = true;
+    _targetCallback.remove(owner);
+    LifecycleCallbacks.instance._ownerAttachCallbacks.remove(onOwnerAttach);
+    LifecycleCallbacks.instance._ownerDetachCallbacks.remove(onOwnerDetach);
+    LifecycleCallbacks.instance._registryAttachCallbacks
+        .remove(onRegistryAttach);
+    LifecycleCallbacks.instance._registryDetachCallbacks
+        .remove(onRegistryDetach);
   }
 
   void onOwnerAttach(Lifecycle? parent, LifecycleOwner childOwner) {
@@ -124,6 +129,11 @@ class _TargetLifecycleCallback {
   }
 
   void onOwnerDetach(Lifecycle parent, LifecycleOwner childOwner) {
+    // if (childOwner == owner) {
+    //   // 如果发生了切换 也会触发onOwnerDetach
+    //   _dispose();
+    //   return;
+    // }
     if (parent != owner.lifecycle) return;
     final callbacks = Set.of(_ownerDetachCallbacks);
     for (var callback in callbacks) {
