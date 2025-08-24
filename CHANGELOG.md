@@ -1,6 +1,6 @@
 ## 3.2.1
 
-* 
+* visibleRoutes use weak references for routes
 
 ## 3.2.0
 

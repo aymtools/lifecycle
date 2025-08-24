@@ -15,7 +15,7 @@ Expando<Set<_RouteChanger>> _navigatorRouteChanger =
 Expando<List<Route>> _historyRoute = Expando('_historyRoute');
 
 class LifecycleNavigatorObserver extends NavigatorObserver {
-  final List<Route> _visibleRoutes = [];
+  final List<WeakReference<Route>> _visibleRoutes = [];
 
   LifecycleNavigatorObserver();
 
@@ -43,11 +43,11 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     final nav = navigator;
     if (nav != null) {
       final history = _historyRoute[nav];
-      final vRoute = <Route>[];
+      final vRoute = <WeakReference<Route>>[];
       if (history != null && history.isNotEmpty) {
         final rHistory = history.reversed;
         for (var element in rHistory) {
-          vRoute.add(element);
+          vRoute.add(WeakReference(element));
           if (element is PageRoute && element.opaque == true) {
             break;
           }
@@ -129,8 +129,12 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   }
 
   Route? getTopRoute() {
-    if (_visibleRoutes.isNotEmpty) {
-      return _visibleRoutes.first;
+    while (_visibleRoutes.isNotEmpty) {
+      final route = _visibleRoutes.first.target;
+      if (route != null) {
+        return route;
+      }
+      _visibleRoutes.removeAt(0);
     }
     final nav = navigator;
     if (nav == null) return null;
@@ -140,7 +144,10 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
 
   bool checkVisible(Route route) {
     if (_visibleRoutes.isNotEmpty && route.navigator == navigator) {
-      return _visibleRoutes.contains(route);
+      for (var element in _visibleRoutes) {
+        if (element.target == route) return true;
+      }
+      return false;
     }
 
     final nav = navigator ?? route.navigator;
@@ -233,8 +240,8 @@ class _HookOverlayEntry extends OverlayEntry {
   @override
   bool get opaque => source.opaque;
 
-  // 兼容高版本的内容
-  // 编译时保持名字不要混淆
+  /// 兼容高版本的内容
+  /// 编译时保持名字不要混淆
   @pragma('vm:keep-name')
   bool get canSizeOverlay {
     try {
