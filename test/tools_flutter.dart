@@ -46,13 +46,17 @@ class TestLifecycleApp extends StatelessWidget {
   final Widget? home;
   final String? initRouteName;
   final Route<dynamic>? Function(RouteSettings)? onGenerateRoute;
+  final LifecycleNavigatorObserver navigatorObserver;
 
-  const TestLifecycleApp(
+  TestLifecycleApp(
       {super.key,
       this.observer,
       this.home,
       this.initRouteName,
-      this.onGenerateRoute});
+      this.onGenerateRoute,
+      LifecycleNavigatorObserver? navigatorObserver})
+      : navigatorObserver =
+            navigatorObserver ?? LifecycleNavigatorObserver.hookMode();
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +67,7 @@ class TestLifecycleApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         navigatorObservers: [
-          LifecycleNavigatorObserver.hookMode(),
+          navigatorObserver,
         ],
         builder: (context, child) {
           if (observer == null) return child!;

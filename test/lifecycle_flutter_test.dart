@@ -55,6 +55,9 @@ void main() {
     testWidgets('pushRoute', (tester) async {
       final observerPageHome = TestLifecycleCollectStateObserver();
       final observerPageNext = TestLifecycleCollectStateObserver();
+      final navigatorObserver = LifecycleNavigatorObserver.hookMode();
+
+      expect(navigatorObserver.getRouteHistory().length, 0);
 
       final home = LifecycleObserverWatcher(
         observer: observerPageHome,
@@ -80,12 +83,15 @@ void main() {
       await tester.pumpWidget(
         TestLifecycleApp(
           initRouteName: '/',
+          navigatorObserver: navigatorObserver,
           onGenerateRoute: (settings) {
             switch (settings.name) {
               case '/':
-                return MaterialPageRoute(builder: (context) => home);
+                return MaterialPageRoute(
+                    settings: settings, builder: (context) => home);
               case '/next':
-                return MaterialPageRoute(builder: (context) => next);
+                return MaterialPageRoute(
+                    settings: settings, builder: (context) => next);
               default:
                 return null;
             }
@@ -100,6 +106,9 @@ void main() {
       ]);
       expect(observerPageNext.stateHistory, []);
 
+      expect(navigatorObserver.getTopRoute()?.settings.name, '/');
+      expect(navigatorObserver.getRouteHistory().length, 1);
+
       await tester.tap(find.byType(TextButton));
 
       await tester.pump();
@@ -113,6 +122,12 @@ void main() {
       ]);
 
       await tester.pumpAndSettle();
+
+      expect(navigatorObserver.getTopRoute()?.settings.name, '/next');
+      final routes= navigatorObserver.getRouteHistory();
+      expect(routes.length, 2);
+      expect(navigatorObserver.checkVisible(routes.first), false);
+      expect(navigatorObserver.checkVisible(routes.last), true);
 
       expect(observerPageHome.historySub(3),
           [LifecycleState.started, LifecycleState.created]);
@@ -155,11 +170,16 @@ void main() {
         LifecycleState.created,
         LifecycleState.destroyed,
       ]);
+
+      expect(navigatorObserver.getTopRoute()?.settings.name, '/');
+      expect(navigatorObserver.getRouteHistory().length, 1);
     });
 
     testWidgets('pushDialog', (tester) async {
       final observerPageHome = TestLifecycleCollectStateObserver();
       final observerDialog = TestLifecycleCollectStateObserver();
+      final navigatorObserver = LifecycleNavigatorObserver.hookMode();
+
       final dialogContent = LifecycleObserverWatcher(
         observer: observerDialog,
         child: Builder(builder: (context) {
@@ -183,6 +203,7 @@ void main() {
 
       await tester.pumpWidget(
         TestLifecycleApp(
+          navigatorObserver: navigatorObserver,
           home: home,
         ),
       );
@@ -193,6 +214,9 @@ void main() {
         LifecycleState.resumed
       ]);
       expect(observerDialog.stateHistory, []);
+
+      expect(navigatorObserver.getTopRoute()?.settings.name, '/');
+      expect(navigatorObserver.getRouteHistory().length, 1);
 
       await tester.tap(find.byType(TextButton));
 
@@ -219,6 +243,13 @@ void main() {
       expect(observerPageHome.historySub(4), [LifecycleState.created]);
       expect(observerDialog.historySub(3),
           [LifecycleState.started, LifecycleState.created]);
+
+      expect(navigatorObserver.getTopRoute(), isNotNull);
+      expect(navigatorObserver.getTopRoute()!.settings.name, isNull);
+      final routes= navigatorObserver.getRouteHistory();
+      expect(routes.length, 2);
+      expect(navigatorObserver.checkVisible(routes.first), true);
+      expect(navigatorObserver.checkVisible(routes.last), true);
 
       binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       expect(observerPageHome.historySub(5), [LifecycleState.started]);
@@ -247,6 +278,10 @@ void main() {
         LifecycleState.created,
         LifecycleState.destroyed,
       ]);
+
+
+      expect(navigatorObserver.getTopRoute()?.settings.name, '/');
+      expect(navigatorObserver.getRouteHistory().length, 1);
     });
   });
 }

@@ -124,7 +124,8 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   static List<Route> getHistoryRoute(BuildContext context) {
     assert(maybeOf(context) != null, 'Cannot find LifecycleNavigatorObserver');
     final navigator = Navigator.of(context);
-    final history = _historyRoute.getOrPut(navigator, () => <Route>[]);
+    final history = _historyRoute[navigator];
+    if (history == null) return [];
     return <Route>[...history];
   }
 
@@ -163,6 +164,14 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
       }
     }
     return false;
+  }
+
+  List<Route> getRouteHistory() {
+    final nav = navigator;
+    if (nav == null) return [];
+    final history = _historyRoute[nav];
+    if (history == null) return [];
+    return <Route>[...history];
   }
 }
 
