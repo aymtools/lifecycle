@@ -2,25 +2,26 @@ import 'package:anlifecycle/src/core/lifecycle.dart';
 import 'package:flutter/widgets.dart';
 
 class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
-  final LifecycleRegistry _lifecycleRegistry;
+  final WeakReference<LifecycleRegistry> _lifecycleRegistry;
 
-  _NativeAppLifecycleStateObserver(this._lifecycleRegistry);
+  _NativeAppLifecycleStateObserver(LifecycleRegistry lifecycleRegistry)
+      : _lifecycleRegistry = WeakReference(lifecycleRegistry);
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.inactive:
-        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+        _lifecycleRegistry.target?.handleLifecycleEvent(LifecycleEvent.pause);
         break;
       case AppLifecycleState.resumed:
-        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        _lifecycleRegistry.target?.handleLifecycleEvent(LifecycleEvent.resume);
         break;
       case AppLifecycleState.paused:
         // case AppLifecycleState.hidden:
-        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+        _lifecycleRegistry.target?.handleLifecycleEvent(LifecycleEvent.stop);
         break;
       case AppLifecycleState.detached:
-        _lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.destroy);
+        _lifecycleRegistry.target?.handleLifecycleEvent(LifecycleEvent.destroy);
         break;
       default:
         break;
