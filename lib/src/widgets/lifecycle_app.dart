@@ -1,10 +1,10 @@
 import 'package:anlifecycle/src/core/lifecycle.dart';
 import 'package:flutter/widgets.dart';
 
-class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
+class _LifecycleNativeAppStateObserver with WidgetsBindingObserver {
   final WeakReference<LifecycleRegistry> _lifecycleRegistry;
 
-  _NativeAppLifecycleStateObserver(LifecycleRegistry lifecycleRegistry)
+  _LifecycleNativeAppStateObserver(LifecycleRegistry lifecycleRegistry)
       : _lifecycleRegistry = WeakReference(lifecycleRegistry);
 
   @override
@@ -31,8 +31,8 @@ class _NativeAppLifecycleStateObserver with WidgetsBindingObserver {
 
 mixin LifecycleAppOwnerState<T extends LifecycleOwnerWidget>
     on LifecycleOwnerStateMixin<T> {
-  late final _NativeAppLifecycleStateObserver _nativeAppLifecycleStateObserver =
-      _NativeAppLifecycleStateObserver(lifecycleRegistry);
+  late final _LifecycleNativeAppStateObserver _nativeAppLifecycleStateObserver =
+      _LifecycleNativeAppStateObserver(lifecycleRegistry);
 
   @override
   void initState() {
