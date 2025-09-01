@@ -1,6 +1,8 @@
-## 3.2.1
+## 3.3.0
 
 * visibleRoutes use weak references for routes
+* MockLifecycleRegistry rename to LifecycleRegistryMock
+* MockLifecycleOwner rename to LifecycleOwnerMock
 
 ## 3.2.0
 

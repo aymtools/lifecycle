@@ -236,7 +236,7 @@ class LifecycleOwnerMock extends LifecycleOwner {
   @override
   final dynamic scope;
   @override
-  late final LifecycleRegistry lifecycleRegistry = LifecycleRegistryMock(this);
+  late final LifecycleRegistryMock lifecycleRegistry = LifecycleRegistryMock(this);
 
   LifecycleOwnerMock([this.scope]);
 
