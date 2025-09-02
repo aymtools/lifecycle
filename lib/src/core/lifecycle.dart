@@ -4,15 +4,10 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 
 part 'lifecycle_callback.dart';
-
 part 'lifecycle_dispatcher.dart';
-
 part 'lifecycle_owner.dart';
-
 part 'lifecycle_proxy_observers.dart';
-
 part 'lifecycle_registry_mixin.dart';
-
 part 'lifecycle_registry_state_delegate.dart';
 
 ///生命周期的事件

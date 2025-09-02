@@ -20,7 +20,8 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
   LifecycleNavigatorObserver();
 
   /// 可以配合[LifecycleRouteMixin]来跳过hook自定义分发，也可以直接使用默认构造函数完全自定义你的route状态
-  factory LifecycleNavigatorObserver.hookMode() => LifecycleHookObserver();
+  factory LifecycleNavigatorObserver.hookMode({bool pageKeepAlive = true}) =>
+      LifecycleHookObserver(pageKeepAlive: pageKeepAlive);
 
   void _subscribe(_RouteChanger changer) {
     final nav = navigator;
@@ -177,6 +178,10 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
 
 /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求)
 class LifecycleHookObserver extends LifecycleNavigatorObserver {
+  final bool pageKeepAlive;
+
+  LifecycleHookObserver({required this.pageKeepAlive});
+
   @override
   void didPush(Route route, Route? previousRoute) {
     if (route is ModalRoute) {
@@ -206,7 +211,8 @@ class LifecycleHookObserver extends LifecycleNavigatorObserver {
       final needHook = entries[index];
       assert(needHook.runtimeType == OverlayEntry,
           'When customizing createOverlayEntries, please use LifecycleRouteMixin. doNotHookMe=true');
-      entries[index] = _HookOverlayEntry(source: needHook, route: route);
+      entries[index] = _HookOverlayEntry(
+          source: needHook, route: route, pageKeepAlive: pageKeepAlive);
     }
   }
 }
@@ -217,22 +223,25 @@ mixin LifecycleRouteMixin<T> on OverlayRoute<T> {
   bool doNotHookMe = false;
 }
 
-Widget Function(BuildContext) _hookBuilder(
-    Widget Function(BuildContext) source, ModalRoute route) {
+Widget Function(BuildContext) _hookBuilder(Widget Function(BuildContext) source,
+    ModalRoute route, bool pageKeepAlive) {
   return (context) => LifecycleRouteOwner(
         route: route,
+        wantKeepAlive: pageKeepAlive,
         child: Builder(builder: source),
       );
 }
 
 class _HookOverlayEntry extends OverlayEntry {
   final OverlayEntry source;
+  final bool pageKeepAlive;
 
   _HookOverlayEntry({
     required this.route,
     required this.source,
+    required this.pageKeepAlive,
   }) : super(
-            builder: _hookBuilder(source.builder, route),
+            builder: _hookBuilder(source.builder, route, pageKeepAlive),
             maintainState: source.maintainState,
             opaque: source.opaque);
   final ModalRoute route;

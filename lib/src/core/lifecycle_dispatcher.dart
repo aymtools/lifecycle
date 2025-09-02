@@ -66,8 +66,7 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
       LifecycleObserver.stateChange(_handleMaxLifecycleStateChange);
 
   final LinkedHashMap<LifecycleObserver, _LifecycleObserverDispatcher>
-      _observers =
-      LinkedHashMap<LifecycleObserver, _LifecycleObserverDispatcher>();
+      _observers = LinkedHashMap.identity();
 
   _LifecycleRegistryImpl(this.provider);
 

@@ -1,7 +1,7 @@
 part of 'lifecycle_navigator_observer.dart';
 
 mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
-on LifecycleOwnerStateMixin<T> implements _RouteChanger {
+    on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   LifecycleNavigatorObserver? _observer;
 
   Route? get _modalRoute {
@@ -74,7 +74,10 @@ on LifecycleOwnerStateMixin<T> implements _RouteChanger {
       final modalRoute = this._modalRoute;
       final observer = _observer;
       if (observer == null || modalRoute == null) return;
-      if (lifecycleRegistry.currentLifecycleState <= LifecycleState.initialized) return;
+      if (lifecycleRegistry.currentLifecycleState <=
+          LifecycleState.initialized) {
+        return;
+      }
       final isCurrent = modalRoute.isCurrent;
       final isActive = modalRoute.isActive;
       if (isCurrent) {
@@ -129,4 +132,4 @@ abstract class LifecycleRouteOwnerBaseState<LOW extends LifecycleRouteOwner>
 typedef LifecycleRoutePage = LifecycleRouteOwner;
 
 typedef LifecycleRoutePageState<T extends LifecycleRouteOwner>
-= LifecycleRouteOwnerState<T>;
+    = LifecycleRouteOwnerState<T>;

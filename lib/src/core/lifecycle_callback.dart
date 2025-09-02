@@ -210,7 +210,8 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void removeOwnerAttachCallback(LifecycleOwnerAttachCallback callback) {
-    _LifecycleToTargetCallbacks.maybeOf(this)?.removeOwnerAttachCallback(callback);
+    _LifecycleToTargetCallbacks.maybeOf(this)
+        ?.removeOwnerAttachCallback(callback);
   }
 
   void addOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
@@ -220,7 +221,8 @@ extension LifecycleCallbackManager on LifecycleOwner {
   }
 
   void removeOwnerDetachCallback(LifecycleOwnerDetachCallback callback) {
-    _LifecycleToTargetCallbacks.maybeOf(this)?.removeOwnerDetachCallback(callback);
+    _LifecycleToTargetCallbacks.maybeOf(this)
+        ?.removeOwnerDetachCallback(callback);
   }
 
   void addRegistryAttachCallback(LifecycleRegistryAttachCallback callback) {

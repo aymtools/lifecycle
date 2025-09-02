@@ -1,3 +1,7 @@
+## 3.3.1
+
+* LifecycleNavigatorObserver.hookMode adds pageKeepAlive parameter
+
 ## 3.3.0
 
 * visibleRoutes use weak references for routes
