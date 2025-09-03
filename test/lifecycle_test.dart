@@ -22,6 +22,12 @@ void main() {
     lifecycle = owner.lifecycle;
   });
 
+  tearDown(() {
+    if (lifecycleRegistry.currentLifecycleState >= LifecycleState.destroyed) {
+      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.destroy);
+    }
+  });
+
   group('lifecycle handle LifecycleEvent', () {
     test('handle LifecycleEvent state change', () {
       expect(lifecycleRegistry.currentState, LifecycleState.initialized);
@@ -172,6 +178,8 @@ void main() {
       expect(observer.onEventCallCount, 10);
 
       expect(collectedEventObserver.eventHistory, observer.eventHistory);
+
+      expect(lifecycleRegistry.observers, isEmpty);
     });
 
     test('State observer', () {
@@ -272,6 +280,8 @@ void main() {
       expect(observer.onStateChangeCallCount, 10);
 
       expect(collectedStateObserver.stateHistory, observer.stateHistory);
+
+      expect(lifecycleRegistry.observers, isEmpty);
     });
 
     test('state observer', () {
@@ -349,6 +359,8 @@ void main() {
         LifecycleState.created,
         LifecycleState.destroyed,
       ]);
+
+      expect(lifecycleRegistry.observers, isEmpty);
     });
 
     test('Add after change state observer', () {
@@ -388,6 +400,8 @@ void main() {
         LifecycleState.created,
         LifecycleState.destroyed
       ]);
+
+      expect(lifecycleRegistry.observers, isEmpty);
     });
 
     test('state observer not full', () {
@@ -609,6 +623,8 @@ void main() {
         LifecycleEvent.stop,
         LifecycleEvent.destroy
       ]);
+
+      expect(lifecycleRegistry.observers, isEmpty);
     });
 
     test('Add after change event observer', () {
@@ -645,6 +661,8 @@ void main() {
         LifecycleEvent.stop,
         LifecycleEvent.destroy
       ]);
+
+      expect(lifecycleRegistry.observers, isEmpty);
     });
 
     test('event observer not full', () {

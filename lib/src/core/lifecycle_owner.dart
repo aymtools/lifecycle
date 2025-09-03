@@ -16,8 +16,8 @@ abstract class LifecycleOwnerWidget extends StatefulWidget {
   StatefulElement createElement() => _LifecycleOwnerElement(this);
 }
 
-class _EffectiveLifecycle extends InheritedWidget {
-  const _EffectiveLifecycle({
+class _LifecycleEffective extends InheritedWidget {
+  const _LifecycleEffective({
     required this.lifecycle,
     required this.scope,
     required super.child,
@@ -30,7 +30,7 @@ class _EffectiveLifecycle extends InheritedWidget {
   final dynamic scope;
 
   @override
-  bool updateShouldNotify(covariant _EffectiveLifecycle oldWidget) =>
+  bool updateShouldNotify(covariant _LifecycleEffective oldWidget) =>
       lifecycle != oldWidget.lifecycle || scope != oldWidget.scope;
 }
 
@@ -62,7 +62,7 @@ class _LifecycleOwnerElement extends StatefulElement {
     assert(
         result == _lifecycleOwnerBuildReturn || result == const Placeholder(),
         'The build content cannot be customized; it must return buildReturn.');
-    return _EffectiveLifecycle(
+    return _LifecycleEffective(
       lifecycle: _lifecycle,
       scope: widget.scope,
       child: widget.child,
@@ -101,7 +101,7 @@ class _LifecycleOwnerElement extends StatefulElement {
   @override
   void didChangeDependencies() {
     final parentLifecycle =
-        dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>()?.lifecycle;
+        dependOnInheritedWidgetOfExactType<_LifecycleEffective>()?.lifecycle;
     final last = _lifecycle.parent;
     if (parentLifecycle != last) {
       if (last != null) {
@@ -130,7 +130,6 @@ class _LifecycleOwnerElement extends StatefulElement {
       l.bindParentLifecycle(null);
     }
     super.unmount();
-    l.clearObserver();
   }
 }
 
@@ -240,9 +239,6 @@ class LifecycleOwnerMock extends LifecycleOwner {
       LifecycleRegistryMock(this);
 
   LifecycleOwnerMock([this.scope]);
-
-  @override
-  Lifecycle get lifecycle => lifecycleRegistry;
 }
 
 @Deprecated('use LifecycleOwnerMock')

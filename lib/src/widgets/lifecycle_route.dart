@@ -44,7 +44,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     }
     if (_observer == null) return;
     if (lifecycleRegistry.currentLifecycleState > LifecycleState.initialized) {
-      final modalRoute = this._modalRoute;
+      final modalRoute = _modalRoute;
       final isCurrent = modalRoute!.isCurrent;
       final isActive = modalRoute.isActive;
       if (isCurrent) {
@@ -71,7 +71,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (_doubleCheck) return;
       _doubleCheck = true;
-      final modalRoute = this._modalRoute;
+      final modalRoute = _modalRoute;
       final observer = _observer;
       if (observer == null || modalRoute == null) return;
       if (lifecycleRegistry.currentLifecycleState <=

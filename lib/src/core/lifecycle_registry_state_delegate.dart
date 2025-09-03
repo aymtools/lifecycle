@@ -1,12 +1,12 @@
 part of 'lifecycle.dart';
 
-class _WillAddToLifecycle {
+class _LifecycleWillAddToOwner {
   final LifecycleObserver observer;
   final LifecycleState? startWith;
   final bool fullCycle;
   final bool destroyWithRegistry;
 
-  _WillAddToLifecycle(
+  _LifecycleWillAddToOwner(
       this.observer, this.startWith, this.fullCycle, this.destroyWithRegistry);
 }
 
@@ -32,7 +32,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       ? _currState
       : _minState(_currState, _lifecycle!.currentLifecycleState);
 
-  Map<LifecycleObserver, _WillAddToLifecycle>? _willAddObservers;
+  Map<LifecycleObserver, _LifecycleWillAddToOwner>? _willAddObservers;
 
   @override
   Lifecycle get lifecycle {
@@ -64,7 +64,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       bool destroyWithRegistry = true}) {
     if (_currState == LifecycleState.initialized) {
       _willAddObservers ??= {};
-      _willAddObservers![observer] = _WillAddToLifecycle(
+      _willAddObservers![observer] = _LifecycleWillAddToOwner(
           observer, startWith, fullCycle, destroyWithRegistry);
       return;
     }
@@ -200,7 +200,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       _isFirstStart = false;
     }
     final p = contextProvider()
-        .dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+        .dependOnInheritedWidgetOfExactType<_LifecycleEffective>();
     final lifecycle = p?.lifecycle;
     final last = _lifecycle;
     if (lifecycle != last) {

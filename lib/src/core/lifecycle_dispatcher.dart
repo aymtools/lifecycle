@@ -3,12 +3,13 @@ part of 'lifecycle.dart';
 LifecycleState _minState(LifecycleState state, LifecycleState state1) =>
     LifecycleState.values[min(state.index, state1.index)];
 
-/// 兼容旧版本 未来将会移除此类直接使用内部类 不在导出
+/// 管理 observers
 abstract class LifecycleRegistry implements Lifecycle {
   void bindParentLifecycle(Lifecycle? parent);
 
   void handleLifecycleEvent(LifecycleEvent event);
 
+  @Deprecated('will only use in test')
   void clearObserver();
 
   Set<LifecycleObserver> get observers;
@@ -173,6 +174,10 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
       _moveState(provider, observer, next, _observers.containsValue);
     }
     _lastState = next;
+
+    if (next == LifecycleState.destroyed) {
+      _observers.clear();
+    }
   }
 
   static LifecycleState _getStateAfter(LifecycleEvent event) {

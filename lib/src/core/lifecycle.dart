@@ -97,14 +97,14 @@ abstract class Lifecycle implements ILifecycle {
     if (context is _LifecycleOwnerElement) {
       return context._lifecycle;
     }
-    _EffectiveLifecycle? lp;
+    _LifecycleEffective? lp;
     if (listen) {
-      lp = context.dependOnInheritedWidgetOfExactType<_EffectiveLifecycle>();
+      lp = context.dependOnInheritedWidgetOfExactType<_LifecycleEffective>();
     } else {
-      if ((context as Element).widget.runtimeType == _EffectiveLifecycle) {
-        return ((context).widget as _EffectiveLifecycle).lifecycle;
+      if ((context as Element).widget.runtimeType == _LifecycleEffective) {
+        return ((context).widget as _LifecycleEffective).lifecycle;
       } else {
-        lp = context.findAncestorWidgetOfExactType<_EffectiveLifecycle>();
+        lp = context.findAncestorWidgetOfExactType<_LifecycleEffective>();
       }
     }
     return lp?.lifecycle;
@@ -129,6 +129,9 @@ abstract class LifecycleOwner implements ILifecycleRegistry {
 
   @protected
   LifecycleRegistry get lifecycleRegistry;
+
+  @override
+  Lifecycle get lifecycle => lifecycleRegistry;
 
   @override
   void addLifecycleObserver(LifecycleObserver observer,
