@@ -316,7 +316,7 @@ extension<T> on Stream<T> {
   }
 }
 
-_runUserCode<T>(T Function() userCode, Function(T value) onSuccess,
+void _runUserCode<T>(T Function() userCode, Function(T value) onSuccess,
     Function(Object error, StackTrace stackTrace) onError) {
   try {
     onSuccess(userCode());

@@ -216,7 +216,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
     }
   }
 
-  void _defDispatchResume(_) {
+  void _defDispatchResume(dynamic _) {
     if (_isInactivate &&
         !customDispatchEvent &&
         currentLifecycleState > LifecycleState.destroyed) {

@@ -64,7 +64,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
 
   bool _doubleCheck = false;
 
-  _scheduleHandleResumeNextFrame() {
+  void _scheduleHandleResumeNextFrame() {
     if (_observer == null) return;
     _doubleCheck = false;
     if (!mounted) return;

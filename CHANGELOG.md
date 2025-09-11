@@ -1,3 +1,7 @@
+## 3.4.1
+
+* Code standardization
+
 ## 3.4.0
 
 * LifecycleNavigatorObserver.hookMode adds pageKeepAlive parameter

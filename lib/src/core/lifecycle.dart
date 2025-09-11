@@ -51,13 +51,13 @@ enum LifecycleState {
 
 /// 对LifecycleState的扩展操作符
 extension LifecycleStateOp on LifecycleState {
-  operator >(LifecycleState state) => index > state.index;
+  bool operator >(LifecycleState state) => index > state.index;
 
-  operator >=(LifecycleState state) => index >= state.index;
+  bool operator >=(LifecycleState state) => index >= state.index;
 
-  operator <(LifecycleState state) => index < state.index;
+  bool operator <(LifecycleState state) => index < state.index;
 
-  operator <=(LifecycleState state) => index <= state.index;
+  bool operator <=(LifecycleState state) => index <= state.index;
 
   LifecycleState nextState() => LifecycleState.values[index + 1];
 
