@@ -9,7 +9,7 @@ class LifecyclePageViewItemOwner extends LifecycleOwnerWidget {
   const LifecyclePageViewItemOwner(
       {super.key,
       required this.index,
-      this.keepAlive = false,
+      this.keepAlive = true,
       required super.child,
       super.scope});
 
@@ -23,8 +23,23 @@ mixin LifecyclePageViewItemOwnerState
   int? _lastSelectIndex;
   PageController? _controller;
 
+  ValueNotifier<bool>? __isScrollingNotifier;
+
   @override
   bool get customDispatchEvent => true;
+
+  set _isScrollingNotifier(ValueNotifier<bool> value) {
+    __isScrollingNotifier?.removeListener(_onIsScrollingChange);
+    __isScrollingNotifier = value;
+    value.addListener(_onIsScrollingChange);
+  }
+
+  void _onIsScrollingChange() {
+    if (__isScrollingNotifier?.value == false) {
+      __isScrollingNotifier = null;
+      _pageSelectedDispatchEvent();
+    }
+  }
 
   void _changeListener() {
     _pageSelectedDispatchEvent();
@@ -41,12 +56,22 @@ mixin LifecyclePageViewItemOwnerState
       return;
     }
     final currentSelectIndex = controller.page?.round();
-    if (_lastSelectIndex == currentSelectIndex || currentSelectIndex == null) {
+    if (currentSelectIndex == null) {
       return;
     }
-    _lastSelectIndex = currentSelectIndex;
+    // if (_lastSelectIndex == currentSelectIndex || currentSelectIndex == null) {
+    //   return;
+    // }
+    // _lastSelectIndex = currentSelectIndex;
     if (currentSelectIndex == widget.index) {
-      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+      final isScrollingNotifier = controller.position.isScrollingNotifier;
+      if (isScrollingNotifier.value) {
+        if (__isScrollingNotifier != isScrollingNotifier) {
+          _isScrollingNotifier = isScrollingNotifier;
+        }
+      } else {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+      }
     } else {
       final viewportFraction = controller.viewportFraction;
       final x = viewportFraction >= 1 ? 0 : (1 / viewportFraction).floor();
@@ -62,10 +87,36 @@ mixin LifecyclePageViewItemOwnerState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    PageController? controller =
-        context.findAncestorWidgetOfExactType<PageView>()?.controller;
+    PageController? controller;
+
+    context.visitAncestorElements((element) {
+      final widget = element.widget;
+      if (widget is PageView) {
+        controller = widget.controller;
+      }
+      return true;
+    });
+
+    assert(() {
+      if (controller != null) {
+        final pageViewState =
+            context.findAncestorStateOfType<State<PageView>>();
+        Element? parent;
+        context.visitAncestorElements((element) {
+          parent = element;
+          return false;
+        });
+        final parentLifecycle = Lifecycle.maybeOf(parent!, listen: false);
+        final parent2Lifecycle =
+            Lifecycle.maybeOf(pageViewState!.context, listen: false);
+        return parentLifecycle == parent2Lifecycle;
+      }
+      return true;
+    }());
+
     if (_controller != controller) {
       _controller?.removeListener(_changeListener);
+      __isScrollingNotifier?.removeListener(_onIsScrollingChange);
       _lastSelectIndex = null;
       _controller = controller;
       _controller?.addListener(_changeListener);
@@ -78,6 +129,7 @@ mixin LifecyclePageViewItemOwnerState
   @override
   void dispose() {
     _controller?.removeListener(_changeListener);
+    __isScrollingNotifier?.removeListener(_onIsScrollingChange);
     super.dispose();
   }
 }
@@ -94,7 +146,7 @@ class _LifecyclePageViewItemState extends State<LifecyclePageViewItemOwner>
   }
 
   @override
-  bool get wantKeepAlive => widget.keepAlive;
+  bool get wantKeepAlive => _controller?.keepPage ?? widget.keepAlive;
 }
 
 List<Widget> _childrenLifecycle(List<Widget> children, bool itemKeepAlive) {

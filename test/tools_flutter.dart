@@ -39,7 +39,13 @@ class TestLifecycleScope extends LifecycleOwnerWidget {
 }
 
 class _TestLifecycleScopeState extends State<LifecycleOwnerWidget>
-    with LifecycleOwnerStateMixin<LifecycleOwnerWidget> {}
+    with LifecycleOwnerStateMixin<LifecycleOwnerWidget> {
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return buildReturn;
+  }
+}
 
 class TestLifecycleApp extends StatelessWidget {
   final LifecycleObserver? observer;

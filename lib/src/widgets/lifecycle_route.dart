@@ -112,9 +112,9 @@ class LifecycleRouteOwner extends LifecycleOwnerWidget {
 
 class _LifecycleRouteState extends State<LifecycleRouteOwner>
     with
-        AutomaticKeepAliveClientMixin,
         LifecycleOwnerStateMixin,
-        LifecycleRouteOwnerState {
+        LifecycleRouteOwnerState,
+        AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => widget.wantKeepAlive;
 
