@@ -2,23 +2,24 @@ import 'package:anlifecycle/src/core/lifecycle.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class LifecyclePageViewItem extends LifecycleOwnerWidget {
+class LifecyclePageViewItemOwner extends LifecycleOwnerWidget {
   final int index;
   final bool keepAlive;
 
-  const LifecyclePageViewItem(
+  const LifecyclePageViewItemOwner(
       {super.key,
       required this.index,
       this.keepAlive = false,
-      required super.child});
+      required super.child,
+      super.scope});
 
   @override
   LifecycleOwnerStateMixin<LifecycleOwnerWidget> createState() =>
       _LifecyclePageViewItemState();
 }
 
-class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
-    with LifecycleOwnerStateMixin, AutomaticKeepAliveClientMixin {
+mixin LifecyclePageViewItemOwnerState
+    on LifecycleOwnerStateMixin<LifecyclePageViewItemOwner> {
   int? _lastSelectIndex;
   PageController? _controller;
 
@@ -79,7 +80,13 @@ class _LifecyclePageViewItemState extends State<LifecyclePageViewItem>
     _controller?.removeListener(_changeListener);
     super.dispose();
   }
+}
 
+class _LifecyclePageViewItemState extends State<LifecyclePageViewItemOwner>
+    with
+        LifecycleOwnerStateMixin,
+        LifecyclePageViewItemOwnerState,
+        AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -94,7 +101,7 @@ List<Widget> _childrenLifecycle(List<Widget> children, bool itemKeepAlive) {
   if (children.isEmpty) return children;
   List<Widget> result = [];
   for (int i = 0; i < children.length; i++) {
-    result.add(LifecyclePageViewItem(
+    result.add(LifecyclePageViewItemOwner(
         index: i, keepAlive: itemKeepAlive, child: children[i]));
   }
   return result;
@@ -141,7 +148,7 @@ class LifecyclePageView extends PageView {
             itemCount: itemCount,
             itemBuilder: (context, index) {
               if (index >= itemCount) return null;
-              return LifecyclePageViewItem(
+              return LifecyclePageViewItemOwner(
                   index: index,
                   keepAlive: itemKeepAlive,
                   child: Builder(
@@ -178,3 +185,5 @@ class LifecycleTabBarView extends TabBarView {
     bool itemKeepAlive = false,
   }) : super(children: _childrenLifecycle(children, itemKeepAlive));
 }
+
+typedef LifecyclePageViewItem = LifecyclePageViewItemOwner;

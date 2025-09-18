@@ -260,6 +260,7 @@ class _HookOverlayEntry extends OverlayEntry {
 
   /// 兼容高版本的内容
   /// 编译时保持名字不要混淆
+  /// flutter 3.19.0 才加入的
   @pragma('vm:keep-name')
   bool get canSizeOverlay {
     try {
