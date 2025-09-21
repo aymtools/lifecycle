@@ -29,8 +29,8 @@ class _LifecycleObserverWatcherState extends State<LifecycleObserverWatcher> {
   }
 }
 
-class TestLifecycleScope extends LifecycleOwnerWidget {
-  const TestLifecycleScope({super.key, required super.child})
+class LifecycleTestScope extends LifecycleOwnerWidget {
+  const LifecycleTestScope({super.key, required super.child})
       : super(scope: 'test_scope');
 
   @override
@@ -47,21 +47,23 @@ class _TestLifecycleScopeState extends State<LifecycleOwnerWidget>
   }
 }
 
-class TestLifecycleApp extends StatelessWidget {
+class LifecycleTestApp extends StatelessWidget {
   final LifecycleObserver? observer;
   final Widget? home;
+  final LifecycleObserver? homeObserver;
   final String? initRouteName;
   final Route<dynamic>? Function(RouteSettings)? onGenerateRoute;
   final LifecycleNavigatorObserver navigatorObserver;
 
-  TestLifecycleApp(
-      {super.key,
-      this.observer,
-      this.home,
-      this.initRouteName,
-      this.onGenerateRoute,
-      LifecycleNavigatorObserver? navigatorObserver})
-      : navigatorObserver =
+  LifecycleTestApp({
+    super.key,
+    this.observer,
+    this.home,
+    this.homeObserver,
+    this.initRouteName,
+    this.onGenerateRoute,
+    LifecycleNavigatorObserver? navigatorObserver,
+  }) : navigatorObserver =
             navigatorObserver ?? LifecycleNavigatorObserver.hookMode();
 
   @override
@@ -82,7 +84,12 @@ class TestLifecycleApp extends StatelessWidget {
             child: child!,
           );
         },
-        home: home,
+        home: homeObserver == null
+            ? home
+            : LifecycleObserverWatcher(
+                observer: homeObserver!,
+                child: home,
+              ),
         initialRoute: initRouteName,
         onGenerateRoute: onGenerateRoute,
       ),
