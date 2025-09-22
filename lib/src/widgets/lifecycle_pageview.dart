@@ -3,23 +3,18 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// 适配PageView 中item的生命周期Owner
-/// * [keepAlive] 当前的item是否使用 [KeepAlive]
-/// * [index]在[PageView]中的位置，只有[index]==[PageController.page]的item才是[resumed]，
-/// 其他可见的item是[started]，不可见的item为[created]
-/// **[PageController.viewportFraction]<0.5 时的行为就比较奇怪，需要特别注意**
 class LifecyclePageViewItemOwner extends LifecycleOwnerWidget {
   final int index;
   final bool keepAlive;
 
   /// 适配PageView 中item的生命周期Owner
   /// * [keepAlive] 当前的item是否使用 [KeepAlive]
-  /// * [index]在[PageView]中的位置，只有[index]==[PageController.page]的item才是[resumed]，
-  /// 其他可见的item是[started]，不可见的item为[created]
-  /// **[PageController.viewportFraction]<0.5 时的行为就比较奇怪，需要特别注意**
+  /// * 完全可见的的item才是[resumed]
+  /// 不完全可见的item是[started]，不可见的item为[created]
   const LifecyclePageViewItemOwner(
       {super.key,
       required this.index,
-      this.keepAlive = true,
+      this.keepAlive = false,
       required super.child,
       super.scope});
 
@@ -71,45 +66,57 @@ mixin LifecyclePageViewItemOwnerState
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
       return;
     }
-    final currentSelectIndex = controller.page?.round();
-    if (currentSelectIndex == null) {
-      // print(
-      //     '${widget.index} _pageSelectedDispatchEvent currentSelectIndex == null');
-      return;
-    }
-    // if (_lastSelectIndex == currentSelectIndex || currentSelectIndex == null) {
-    //   return;
-    // }
-    // _lastSelectIndex = currentSelectIndex;
     final isScrollingNotifier = controller.position.isScrollingNotifier;
-    if (currentSelectIndex == widget.index) {
-      if (!isScrollingNotifier.value) {
-        // print(
-        //     '${widget.index} _pageSelectedDispatchEvent handleLifecycleEvent resume');
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
-      }
-    } else {
-      final viewportFraction = controller.viewportFraction;
-      final x = viewportFraction >= 1 ? 0 : ((1 / viewportFraction) / 2).ceil();
-      // print(
-      //     '${widget.index} _pageSelectedDispatchEvent $currentSelectIndex viewportFraction:$viewportFraction x:$x');
-      if (currentSelectIndex < (widget.index - x) ||
-          currentSelectIndex > (widget.index + x)) {
-        // print(
-        //     '${widget.index} _pageSelectedDispatchEvent handleLifecycleEvent stop');
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
-      } else {
-        // print(
-        //     '${widget.index} _pageSelectedDispatchEvent handleLifecycleEvent pause');
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
-      }
-    }
+
     if (isScrollingNotifier.value) {
       // print('${widget.index} _pageSelectedDispatchEvent isScrolling');
       if (__isScrollingNotifier != isScrollingNotifier) {
         _isScrollingNotifier = isScrollingNotifier;
       }
+      if (_isVisible(widget.index, controller)) {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+      } else {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+      }
+    } else {
+      final visibleFraction = _visibleFraction(widget.index, controller);
+      // print(
+      //     '${widget.index} _pageSelectedDispatchEvent visibleFraction:$visibleFraction');
+      if (visibleFraction == 1.0) {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+      } else if (visibleFraction > 0.0) {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+      } else {
+        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+      }
     }
+  }
+
+  bool _isVisible(int index, PageController controller) {
+    if (!controller.hasClients) return false;
+    final double? page = controller.page;
+    if (page == null) return false;
+
+    final fraction = controller.viewportFraction; // 0~1
+    final diff = (page - index).abs();
+
+    // 如果 diff < 1 ，并且页面的一部分会进入屏幕
+    return diff < 1 / fraction;
+  }
+
+  /// 计算[index]页面可见的比例，0.0~1.0 0 不可见 1 完全可见 其他部分可见
+  double _visibleFraction(int index, PageController controller) {
+    if (!controller.hasClients) return 0.0;
+    final double? page = controller.page;
+    if (page == null) return 0.0;
+
+    final fraction = controller.viewportFraction; // 每页占屏幕的比例
+    final diff = (page - index).abs();
+
+    if (diff >= 1 / fraction) return 0.0;
+
+    // 简化后的计算：当 diff=0，完全可见=1.0；随着 diff 增大逐渐减少
+    return (1 - diff * fraction).clamp(0.0, 1.0);
   }
 
   @override
@@ -121,14 +128,28 @@ mixin LifecyclePageViewItemOwnerState
       final widget = element.widget;
       if (widget is PageView) {
         controller = widget.controller;
+        return false;
       }
       return true;
     });
 
+    /// 如果未指定PageController pageView会自动生成一个
+    if (controller == null) {
+      final c =
+          Scrollable
+              .maybeOf(context, axis: Axis.horizontal)
+              ?.widget
+              .controller;
+      if (c is PageController) {
+        controller = c;
+      }
+    }
+
     assert(() {
       if (controller != null) {
-        final pageViewState =
+        State? pageViewState =
             context.findAncestorStateOfType<State<PageView>>();
+        pageViewState ??= Scrollable.maybeOf(context, axis: Axis.horizontal);
         Element? parent;
         context.visitAncestorElements((element) {
           parent = element;
@@ -198,9 +219,8 @@ List<Widget> _childrenLifecycle(List<Widget> children, bool itemKeepAlive) {
 class LifecyclePageView extends PageView {
   /// 添加了生命周期，适配PageView 中item的生命周期Owner
   /// * [itemKeepAlive] 当前的item是否使用 [KeepAlive]
-  /// * 只有[index]==[PageController.page]的item才是[resumed]，
-  /// 其他可见的item是[started]，不可见的item为[created]
-  /// **[PageController.viewportFraction]<0.5 时的行为就比较奇怪，需要特别注意**
+  /// * 完全可见的的item才是[resumed]
+  /// 不完全可见的item是[started]，不可见的item为[created]
   LifecyclePageView({
     super.key,
     super.scrollDirection = Axis.horizontal,
@@ -221,9 +241,8 @@ class LifecyclePageView extends PageView {
 
   /// 添加了生命周期，适配PageView 中item的生命周期Owner
   /// * [itemKeepAlive] 当前的item是否使用 [KeepAlive]
-  /// * 只有[index]==[PageController.page]的item才是[resumed]，
-  /// 其他可见的item是[started]，不可见的item为[created]
-  /// **[PageController.viewportFraction]<0.5 时的行为就比较奇怪，需要特别注意**
+  /// * 完全可见的的item才是[resumed]
+  /// 不完全可见的item是[started]，不可见的item为[created]
   LifecyclePageView.builder({
     super.key,
     super.scrollDirection = Axis.horizontal,
@@ -275,9 +294,8 @@ class LifecyclePageView extends PageView {
 class LifecycleTabBarView extends TabBarView {
   /// 添加了生命周期，适配TabBarView 中item的生命周期Owner
   /// * [itemKeepAlive] 当前的item是否使用 [KeepAlive]
-  /// * 只有[index]==[PageController.page]的item才是[resumed]，
-  /// 其他可见的item是[started]，不可见的item为[created]
-  /// **[PageController.viewportFraction]<0.5 时的行为就比较奇怪，需要特别注意**
+  /// * 完全可见的的item才是[resumed]
+  /// 不完全可见的item是[started]，不可见的item为[created]
   LifecycleTabBarView({
     super.key,
     List<Widget> children = const <Widget>[],
