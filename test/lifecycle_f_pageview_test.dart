@@ -1004,6 +1004,7 @@ void main() {
         expect(twoCollectStateObserver.stateHistory, [
           LifecycleState.created,
           LifecycleState.started,
+          LifecycleState.resumed,
         ]);
         expect(threeCollectStateObserver.stateHistory, [
           LifecycleState.created,
@@ -1015,9 +1016,10 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(pageViewController.page?.round(), 1);
-        expect(oneCollectStateObserver.historySub(3), [LifecycleState.started]);
-        expect(twoCollectStateObserver.historySub(2), [LifecycleState.resumed]);
-        expect(threeCollectStateObserver.historySub(2), []);
+        expect(oneCollectStateObserver.historySub(3), []);
+        expect(twoCollectStateObserver.historySub(3), []);
+        expect(
+            threeCollectStateObserver.historySub(2), [LifecycleState.resumed]);
 
         pageViewController.animateToPage(2,
             duration: Duration(milliseconds: 100), curve: Curves.linear);
@@ -1025,9 +1027,7 @@ void main() {
 
         expect(pageViewController.page?.round(), 2);
         expect(oneCollectStateObserver.historySub(4), []);
-        expect(twoCollectStateObserver.historySub(3), [
-          LifecycleState.started,
-        ]);
+        expect(twoCollectStateObserver.historySub(3), []);
         expect(threeCollectStateObserver.historySub(2), [
           LifecycleState.resumed,
         ]);
@@ -1313,9 +1313,7 @@ void main() {
 
     group('TabBarView', () {
       testWidgets('create', (tester) async {
-        expect(navigatorObserver
-            .getRouteHistory()
-            .length, 0);
+        expect(navigatorObserver.getRouteHistory().length, 0);
         final tabController = TabController(length: 3, vsync: tester);
 
         final page = LifecycleObserverWatcher(
@@ -1339,9 +1337,7 @@ void main() {
           ),
         );
 
-        expect(navigatorObserver
-            .getRouteHistory()
-            .length, 1);
+        expect(navigatorObserver.getRouteHistory().length, 1);
 
         expect(appCollectStateObserver.stateHistory, [
           LifecycleState.created,
@@ -1352,9 +1348,7 @@ void main() {
             ?.push(MaterialPageRoute(builder: (_) => page));
         await tester.pumpAndSettle();
 
-        expect(navigatorObserver
-            .getRouteHistory()
-            .length, 2);
+        expect(navigatorObserver.getRouteHistory().length, 2);
 
         expect(pageCollectStateObserver.stateHistory, [
           LifecycleState.created,
@@ -1419,9 +1413,7 @@ void main() {
         navigatorObserver.navigator
             ?.removeRoute(navigatorObserver.getTopRoute()!);
         await tester.pumpAndSettle();
-        expect(navigatorObserver
-            .getRouteHistory()
-            .length, 1);
+        expect(navigatorObserver.getRouteHistory().length, 1);
 
         expect(oneCollectStateObserver.historySub(5), [
           LifecycleState.destroyed,

@@ -30,6 +30,36 @@ mixin LifecyclePageViewItemOwnerState
 
   ValueNotifier<bool>? __isScrollingNotifier;
 
+  late void Function(PageController) _dispatchLifecycleEventer =
+      _dispatchLifecycleEvent;
+
+  void _changeController(PageController? controller) {
+    final lastController = _controller;
+
+    if (_controller != controller) {
+      _controller?.removeListener(_changeListener);
+      __isScrollingNotifier?.removeListener(_onIsScrollingChange);
+      // _lastSelectIndex = null;
+      _controller = controller;
+      _controller?.addListener(_changeListener);
+      if (controller == null) {
+        _dispatchLifecycleEventer = _dispatchLifecycleEvent;
+      } else {
+        _dispatchLifecycleEventer = controller.viewportFraction > 1
+            ? _dispatchLifecycleEvent2
+            : _dispatchLifecycleEvent;
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pageSelectedDispatchEvent();
+      });
+    } else if (lastController == null && controller != null) {
+      ///  如果未找到 PageView的Controller 则遵从默认规则直接到 resume
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pageSelectedDispatchEvent();
+      });
+    }
+  }
+
   @override
   bool get customDispatchEvent => true;
 
@@ -42,91 +72,133 @@ mixin LifecyclePageViewItemOwnerState
   void _onIsScrollingChange() {
     if (__isScrollingNotifier?.value == false) {
       __isScrollingNotifier = null;
-      // print('${widget.index} _onIsScrollingChange');
       _pageSelectedDispatchEvent();
     }
   }
 
   void _changeListener() {
-    // print('${widget.index} _changeListener');
     _pageSelectedDispatchEvent();
   }
 
   void _pageSelectedDispatchEvent() {
-    // print('${widget.index} _pageSelectedDispatchEvent');
     final controller = _controller;
     if (controller == null) {
-      // print('${widget.index} _pageSelectedDispatchEvent controller=null');
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
       return;
     }
     if (!controller.hasClients) {
-      // print(
-      //     '${widget.index} _pageSelectedDispatchEvent !controller.hasClients');
       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
       return;
     }
-    final isScrollingNotifier = controller.position.isScrollingNotifier;
+    // final isScrollingNotifier = controller.position.isScrollingNotifier;
+    //
+    // if (isScrollingNotifier.value) {
+    //   // print('${widget.index} _pageSelectedDispatchEvent isScrolling');
+    //   if (__isScrollingNotifier != isScrollingNotifier) {
+    //     _isScrollingNotifier = isScrollingNotifier;
+    //   }
+    //   if (_isVisible(widget.index, controller)) {
+    //     // 当处于滚动状态时处于可见并且resumed的状态不进行切换
+    //     if(lifecycleRegistry.currentLifecycleState < LifecycleState.started){
+    //       lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+    //     }
+    //     // lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+    //   } else {
+    //     lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+    //   }
+    // } else {
+    // print(
+    //     '${widget.index} _pageSelectedDispatchEvent visibleFraction:$visibleFraction');
+    // if (visibleFraction == 1.0) {
+    //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+    // } else if (visibleFraction > 0.0) {
+    //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+    // } else {
+    //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+    // }
+    // }
 
+    _dispatchLifecycleEventer(controller);
+  }
+
+  void _dispatchLifecycleEvent(PageController controller) {
+    final visibleFraction = _visibleFraction(widget.index, controller);
+    if (visibleFraction == 1.0) {
+      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+    } else if (visibleFraction > 0.0) {
+      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+    } else {
+      lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
+    }
+  }
+
+  void _dispatchLifecycleEvent2(PageController controller) {
+    final isScrollingNotifier = controller.position.isScrollingNotifier;
     if (isScrollingNotifier.value) {
-      // print('${widget.index} _pageSelectedDispatchEvent isScrolling');
       if (__isScrollingNotifier != isScrollingNotifier) {
         _isScrollingNotifier = isScrollingNotifier;
       }
-      if (_isVisible(widget.index, controller)) {
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
-      } else {
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
-      }
+      _dispatchLifecycleEvent(controller);
     } else {
-      final visibleFraction = _visibleFraction(widget.index, controller);
-      // print(
-      //     '${widget.index} _pageSelectedDispatchEvent visibleFraction:$visibleFraction');
-      if (visibleFraction == 1.0) {
+      if (_isVisible(widget.index, controller)) {
+        // 滚动结束时可见的唯一一个页面
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
-      } else if (visibleFraction > 0.0) {
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
       } else {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.stop);
       }
     }
   }
 
+  double _currentPage(PageController controller) {
+    return controller.page ?? controller.initialPage.toDouble();
+  }
+
   bool _isVisible(int index, PageController controller) {
-    if (!controller.hasClients) return false;
-    final double? page = controller.page;
-    if (page == null) return false;
-
-    final fraction = controller.viewportFraction; // 0~1
-    final diff = (page - index).abs();
-
-    // 如果 diff < 1 ，并且页面的一部分会进入屏幕
-    return diff < 1 / fraction;
+    // if (!controller.hasClients) return false;
+    // final double? page = controller.page;
+    // if (page == null) return false;
+    //
+    // final fraction = controller.viewportFraction; // 0~1
+    // final diff = (page - index).abs();
+    //
+    // // 如果 diff < 1 ，并且页面的一部分会进入屏幕
+    // return diff < 1 / fraction;
+    final double f = controller.viewportFraction;
+    final double diff = (_currentPage(controller) - index).abs();
+    // 可见的阈值（>0 表示有重叠）
+    final double threshold = (1 + f) / (2 * f);
+    return diff < threshold;
   }
 
   /// 计算[index]页面可见的比例，0.0~1.0 0 不可见 1 完全可见 其他部分可见
   double _visibleFraction(int index, PageController controller) {
-    if (!controller.hasClients) return 0.0;
-    final double? page = controller.page;
-    if (page == null) return 0.0;
-
-    final fraction = controller.viewportFraction; // 每页占屏幕的比例
-    final diff = (page - index).abs();
-
-    if (diff >= 1 / fraction) return 0.0;
-
-    // 简化后的计算：当 diff=0，完全可见=1.0；随着 diff 增大逐渐减少
-    return (1 - diff * fraction).clamp(0.0, 1.0);
+    // if (!controller.hasClients) return 0.0;
+    // final double? page = controller.page;
+    // if (page == null) return 0.0;
+    //
+    // final fraction = controller.viewportFraction; // 每页占屏幕的比例
+    // final diff = (page - index).abs();
+    //
+    // if (diff >= 1 / fraction) return 0.0;
+    //
+    // // 简化后的计算：当 diff=0，完全可见=1.0；随着 diff 增大逐渐减少
+    // return (1 - diff * fraction).clamp(0.0, 1.0);
+    final double f = controller.viewportFraction;
+    final double diff = (_currentPage(controller) - index).abs();
+    final double raw = (1 + f) / (2 * f) - diff;
+    return raw.clamp(0.0, 1.0); // 确保在 [0,1]
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    PageView? pageView;
     PageController? controller;
 
     context.visitAncestorElements((element) {
       final widget = element.widget;
       if (widget is PageView) {
+        pageView = widget;
         controller = widget.controller;
         return false;
       }
@@ -134,22 +206,21 @@ mixin LifecyclePageViewItemOwnerState
     });
 
     /// 如果未指定PageController pageView会自动生成一个
-    if (controller == null) {
-      final c =
-          Scrollable
-              .maybeOf(context, axis: Axis.horizontal)
-              ?.widget
-              .controller;
+    if (controller == null && pageView != null) {
+      final c = Scrollable.maybeOf(context, axis: pageView!.scrollDirection)
+          ?.widget
+          .controller;
       if (c is PageController) {
         controller = c;
       }
     }
 
     assert(() {
-      if (controller != null) {
+      if (controller != null && pageView != null) {
         State? pageViewState =
             context.findAncestorStateOfType<State<PageView>>();
-        pageViewState ??= Scrollable.maybeOf(context, axis: Axis.horizontal);
+        pageViewState ??=
+            Scrollable.maybeOf(context, axis: pageView!.scrollDirection);
         Element? parent;
         context.visitAncestorElements((element) {
           parent = element;
@@ -163,23 +234,7 @@ mixin LifecyclePageViewItemOwnerState
       return true;
     }());
 
-    final lastController = _controller;
-
-    if (_controller != controller) {
-      _controller?.removeListener(_changeListener);
-      __isScrollingNotifier?.removeListener(_onIsScrollingChange);
-      // _lastSelectIndex = null;
-      _controller = controller;
-      _controller?.addListener(_changeListener);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pageSelectedDispatchEvent();
-      });
-    } else if (lastController == null && controller != null) {
-      ///  如果未找到 PageView的Controller 则遵从默认规则直接到 resume
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pageSelectedDispatchEvent();
-      });
-    }
+    _changeController(controller);
   }
 
   @override
