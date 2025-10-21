@@ -1,3 +1,7 @@
+## 3.5.1
+
+* Code standardization
+
 ## 3.5.0
 
 * Adjust all fully visible PageViewItems to be resumed.
