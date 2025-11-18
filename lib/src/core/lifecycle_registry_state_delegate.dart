@@ -37,6 +37,9 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   @override
   Lifecycle get lifecycle {
     if (_lifecycle == null) {
+      if (_currState == LifecycleState.destroyed) {
+        throw 'currentLifecycleState is destroyed';
+      }
       late Element? parent = parentProvider?.call();
       if (parent == null) {
         parent = contextProvider() as Element;
@@ -240,6 +243,10 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
   void dispose() {
     if (_currState <= LifecycleState.destroyed) return;
+
+    /// 移除parent管理
+    _lifecycle?.removeLifecycleObserver(_parentStateChanger, fullCycle: false);
+
     //当销毁的时候还存在未绑定到lifecycle的observer，则进行直接添加到对象
     final willAddToLifecycle =
         [..._observers.values].where((e) => e._willToLifecycle);
@@ -272,7 +279,6 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     }
 
     // _observers.clear();
-    _lifecycle?.removeLifecycleObserver(_parentStateChanger);
     _lifecycle = null;
   }
 }
