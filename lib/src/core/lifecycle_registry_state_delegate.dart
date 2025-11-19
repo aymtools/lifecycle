@@ -243,9 +243,13 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
 
   void dispose() {
     if (_currState <= LifecycleState.destroyed) return;
+    _currState = LifecycleState.destroyed;
+    final lifecycle = _lifecycle as _LifecycleRegistryImpl?;
+    if (lifecycle == null) return;
+    _lifecycle = null;
 
     /// 移除parent管理
-    _lifecycle?.removeLifecycleObserver(_parentStateChanger, fullCycle: false);
+    lifecycle.removeLifecycleObserver(_parentStateChanger, fullCycle: false);
 
     //当销毁的时候还存在未绑定到lifecycle的observer，则进行直接添加到对象
     final willAddToLifecycle =
@@ -254,31 +258,26 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       /// 先移除管理
       _observers.removeWhere((k, v) => willAddToLifecycle.contains(v));
       // 在添加到目标
-      final life = (_lifecycle as _LifecycleRegistryImpl);
       for (var dispatcher in willAddToLifecycle) {
-        life._observers.remove(dispatcher._observer);
-        life._addObserverDispatcher(
+        lifecycle._observers.remove(dispatcher._observer);
+        lifecycle._addObserverDispatcher(
             dispatcher._observer, dispatcher._dispatcher);
       }
     }
-
-    _currState = LifecycleState.destroyed;
 
     // 如果时当前register 关注的observer 则执行 移动状态到destroy
     final willDestroy =
         [..._observers.values].where((e) => e._destroyWithRegistry);
     if (willDestroy.isNotEmpty) {
-      final life = (_lifecycle as _LifecycleRegistryImpl);
-      life._observers.removeWhere((k, v) => willDestroy.contains(v));
+      lifecycle._observers.removeWhere((k, v) => willDestroy.contains(v));
       for (var dispatcher in willDestroy) {
-        _LifecycleRegistryImpl._moveState(life.owner, dispatcher._dispatcher,
-            LifecycleState.destroyed, (_) => true);
+        _LifecycleRegistryImpl._moveState(
+            lifecycle.owner,
+            dispatcher._dispatcher,
+            LifecycleState.destroyed,
+            (d) => _observers.containsValue(d));
       }
-      _observers.clear();
-      // _observers.removeWhere((k, v) => willDestroy.contains(v));
     }
-
-    // _observers.clear();
-    _lifecycle = null;
+    _observers.clear();
   }
 }

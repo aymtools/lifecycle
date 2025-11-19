@@ -83,8 +83,8 @@ mixin LifecycleRegistryStateMixin<W extends StatefulWidget> on State<W>
 
   @override
   void deactivate() {
-    super.deactivate();
     _delegate.deactivate();
+    super.deactivate();
   }
 
   @override
@@ -95,8 +95,8 @@ mixin LifecycleRegistryStateMixin<W extends StatefulWidget> on State<W>
 
   @override
   void dispose() {
-    super.dispose();
     _delegate.dispose();
+    super.dispose();
   }
 }
 
