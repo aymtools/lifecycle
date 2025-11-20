@@ -151,6 +151,9 @@ abstract class LifecycleOwner implements ILifecycleRegistry {
 }
 
 /// lifecycle的临时管理者
+/// - **注意** 只是临时代管理 ，真正的生命周期管理者是owner，
+/// 所以会存在 状态行为不一致需要注意 例如当前状态是started但却分发了destroy状态，
+/// 当首次与owner状态一致时转移到owner管理
 abstract class LifecycleRegistryState implements ILifecycleRegistry {
   /// 当状态一致时将observer转移到 [Lifecycle] 处理,不再由 [LifecycleRegistryState] 处理
   /// [destroyWithRegistry] 当 LifecycleRegistryState 销毁时是否执行Observer的destroy

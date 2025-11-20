@@ -103,7 +103,7 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
   void _addObserver(
       LifecycleObserver observer, LifecycleState? defState, bool fullCycle) {
     defState =
-        _minState(getCurrentState(), defState ?? LifecycleState.destroyed);
+        _minState(getCurrentState(), defState ?? LifecycleState.initialized);
 
     _addObserverDispatcher(
         observer, _LifecycleObserverDispatcher(defState, observer, fullCycle));

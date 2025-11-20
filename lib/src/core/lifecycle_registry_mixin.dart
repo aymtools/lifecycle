@@ -41,6 +41,9 @@ mixin LifecycleRegistryDelegateMixin implements LifecycleRegistryState {
 }
 
 /// 混入state来临时管理和注册observer
+/// - **注意** 只是临时代管理 ，真正的生命周期管理者是owner，
+/// 所以会存在 状态行为不一致需要注意 例如当前状态是started但却分发了destroy状态，
+/// 当首次与owner状态一致时转移到owner管理
 mixin LifecycleRegistryStateMixin<W extends StatefulWidget> on State<W>
     implements LifecycleRegistryState {
   late LifecycleRegistryStateDelegate _delegate =
@@ -101,6 +104,9 @@ mixin LifecycleRegistryStateMixin<W extends StatefulWidget> on State<W>
 }
 
 /// 混入Element来临时管理和注册observer
+/// - **注意** 只是临时代管理 ，真正的生命周期管理者是owner，
+/// 所以会存在 状态行为不一致需要注意 例如当前状态是started但却分发了destroy状态，
+/// 当首次与owner状态一致时转移到owner管理
 mixin LifecycleRegistryElementMixin on ComponentElement
     implements LifecycleRegistryState {
   late final LifecycleRegistryStateDelegate _delegate =
