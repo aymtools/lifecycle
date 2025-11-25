@@ -264,6 +264,9 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     /// 对当前自己管理的observer 进行转移处理
     for (var dispatcher in dispatchers) {
       if (dispatcher._destroyWithRegistry) {
+        // 先将lifecycle的管理移除掉
+        lObservers.remove(dispatcher._observer);
+
         /// 如果是跟随register销毁的 则进行状态移动到destroyed
         _LifecycleRegistryImpl._moveState(lifecycle.owner,
             dispatcher._dispatcher, LifecycleState.destroyed, checker);
