@@ -1,6 +1,7 @@
-## 3.5.2
+## 3.6.0
 
-*
+* Observers in LifecycleRegistryState are executed in their registration order when dispose is
+  called.
 
 ## 3.5.1
 
