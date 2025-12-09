@@ -174,6 +174,18 @@ class LifecycleNavigatorObserver extends NavigatorObserver {
     if (history == null) return [];
     return <Route>[...history];
   }
+
+  @visibleForTesting
+  List<Route> getVisibleRouteHistory() {
+    final result = <Route>[];
+    for (var e in [..._visibleRoutes]) {
+      final r = e.target;
+      if (r != null) {
+        result.add(r);
+      }
+    }
+    return result;
+  }
 }
 
 /// 启用hook之后将会导致maintainState 无法动态改变(目前暂未遇到此需求)

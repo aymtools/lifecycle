@@ -1,14 +1,15 @@
 name: anlifecycle
 description: AnLifecycle draws on lifecycle in androidx to implement lifecycle on Flutter, Developers can sense the LifecycleState under the current context wherever you need it.
-version: 3.6.0
+version: 3.6.1
 homepage: https://github.com/aymtools/lifecycle/
 issue_tracker: https://github.com/aymtools/lifecycle/issues
 topics:
   - lifecycle
   - androidx
   - androidx-lifecycle
-  - life
   - resume
+  - hide
+  - show
 
 environment:
   sdk: '>=2.17.0 <4.0.0'

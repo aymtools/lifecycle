@@ -1,3 +1,7 @@
+## 3.6.1
+
+* When moving the lifecycle state, the state is saved first and then observers are invoked.
+
 ## 3.6.0
 
 * Observers in LifecycleRegistryState are executed in their registration order when dispose is

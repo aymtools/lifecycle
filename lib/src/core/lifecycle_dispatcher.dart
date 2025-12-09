@@ -170,10 +170,12 @@ class _LifecycleRegistryImpl extends LifecycleRegistry {
     if (_lastState == next) {
       return;
     }
+
+    _lastState = next;
+
     for (var observer in [..._observers.values]) {
       _moveState(provider, observer, next, _observers.containsValue);
     }
-    _lastState = next;
 
     if (next == LifecycleState.destroyed) {
       _observers.clear();
