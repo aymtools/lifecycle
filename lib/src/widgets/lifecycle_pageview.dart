@@ -193,34 +193,46 @@ mixin LifecyclePageViewItemOwnerState
   void didChangeDependencies() {
     super.didChangeDependencies();
     PageView? pageView;
+    State? pageViewState;
     PageController? controller;
 
     context.visitAncestorElements((element) {
       final widget = element.widget;
       if (widget is PageView) {
-        pageView = widget;
         controller = widget.controller;
+        assert(() {
+          pageView = widget;
+          pageViewState = (element as StatefulElement).state;
+          return true;
+        }());
         return false;
       }
       return true;
     });
 
-    /// 如果未指定PageController pageView会自动生成一个
+    // 如果未指定PageController pageView会自动生成一个 向上寻找 Scrollable并且方向一直的 controller
     if (controller == null && pageView != null) {
-      final c = Scrollable.maybeOf(context, axis: pageView!.scrollDirection)
-          ?.widget
-          .controller;
-      if (c is PageController) {
-        controller = c;
-      }
+      final axisDirection = pageView!.scrollDirection;
+
+      context.visitAncestorElements((element) {
+        if (element is StatefulElement && element.state is ScrollableState) {
+          final s = element.state as ScrollableState;
+          if (axisDirectionToAxis(s.axisDirection) == axisDirection &&
+              s.widget.controller is PageController) {
+            controller = s.widget.controller as PageController?;
+            assert(() {
+              pageViewState = element.state;
+              return true;
+            }());
+            return false;
+          }
+        }
+        return true;
+      });
     }
 
     assert(() {
       if (controller != null && pageView != null) {
-        State? pageViewState =
-            context.findAncestorStateOfType<State<PageView>>();
-        pageViewState ??=
-            Scrollable.maybeOf(context, axis: pageView!.scrollDirection);
         Element? parent;
         context.visitAncestorElements((element) {
           parent = element;
@@ -319,7 +331,9 @@ class LifecyclePageView extends PageView {
   }) : super.builder(
             itemCount: itemCount,
             itemBuilder: (context, index) {
-              if (index >= itemCount) return null;
+              if (index >= itemCount) {
+                throw RangeError.index(index, itemCount);
+              }
               return LifecyclePageViewItemOwner(
                   index: index,
                   keepAlive: itemKeepAlive,
@@ -345,8 +359,29 @@ class LifecyclePageView extends PageView {
 // }) : super.custom();
 }
 
+class LifecycleTabBarViewSupport {
+  LifecycleTabBarView call({
+    Key? key,
+    List<Widget> children = const <Widget>[],
+    TabController? controller,
+    ScrollPhysics? physics,
+    DragStartBehavior dragStartBehavior = DragStartBehavior.start,
+    double viewportFraction = 1.0,
+    Clip clipBehavior = Clip.hardEdge,
+    bool itemKeepAlive = false,
+  }) {
+    return LifecycleTabBarView();
+  }
+}
+
 /// 替换TabBarView，添加生命周期
 class LifecycleTabBarView extends TabBarView {
+  //  flutter 2.17没有此属性 以继承的方式来兼容新旧版本
+  final Clip _clipBehavior;
+
+  @override
+  Clip get clipBehavior => _clipBehavior;
+
   /// 添加了生命周期，适配TabBarView 中item的生命周期Owner
   /// * [itemKeepAlive] 当前的item是否使用 [KeepAlive]
   /// * 完全可见的的item才是[resumed]
@@ -358,9 +393,10 @@ class LifecycleTabBarView extends TabBarView {
     super.physics,
     super.dragStartBehavior = DragStartBehavior.start,
     super.viewportFraction = 1.0,
-    super.clipBehavior = Clip.hardEdge,
+    Clip clipBehavior = Clip.hardEdge,
     bool itemKeepAlive = false,
-  }) : super(children: _childrenLifecycle(children, itemKeepAlive));
+  })  : _clipBehavior = clipBehavior,
+        super(children: _childrenLifecycle(children, itemKeepAlive));
 }
 
 typedef LifecyclePageViewItem = LifecyclePageViewItemOwner;

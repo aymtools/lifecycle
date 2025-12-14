@@ -529,6 +529,86 @@ void main() {
         ]);
       });
 
+      testWidgets('no pageController', (tester) async {
+        expect(navigatorObserver.getRouteHistory().length, 0);
+        await tester.pumpWidget(
+          LifecycleTestApp(
+            observer: appCollectStateObserver,
+            navigatorObserver: navigatorObserver,
+            home: PageView(
+              children: [
+                LifecyclePageViewItemOwner(
+                  index: 0,
+                  keepAlive: true,
+                  child: LifecycleObserverWatcher(
+                      observer: oneCollectStateObserver),
+                ),
+                LifecyclePageViewItemOwner(
+                  index: 1,
+                  keepAlive: true,
+                  child: LifecycleObserverWatcher(
+                      observer: twoCollectStateObserver),
+                ),
+                LifecyclePageViewItemOwner(
+                  index: 2,
+                  keepAlive: true,
+                  child: LifecycleObserverWatcher(
+                      observer: threeCollectStateObserver),
+                ),
+              ],
+            ),
+          ),
+        );
+
+        expect(navigatorObserver.getRouteHistory().length, 1);
+
+        expect(oneCollectStateObserver.stateHistory, [
+          LifecycleState.created,
+          LifecycleState.started,
+          LifecycleState.resumed
+        ]);
+        expect(twoCollectStateObserver.stateHistory, []);
+        expect(threeCollectStateObserver.stateHistory, []);
+
+        await tester.fling(
+          find.byType(PageView),
+          const Offset(-300, 0),
+          1000, // pixels/second
+        );
+
+        await tester.pumpAndSettle();
+        expect(navigatorObserver.getRouteHistory().length, 1);
+        expect(appCollectStateObserver.historySub(3), []);
+        expect(oneCollectStateObserver.historySub(3), [
+          LifecycleState.started,
+          LifecycleState.created,
+        ]);
+        expect(twoCollectStateObserver.stateHistory, [
+          LifecycleState.created,
+          LifecycleState.started,
+          LifecycleState.resumed,
+        ]);
+        expect(threeCollectStateObserver.stateHistory, []);
+
+        navigatorObserver.navigator?.pushReplacement(
+            MaterialPageRoute(builder: (_) => SizedBox.shrink()));
+
+        await tester.pumpAndSettle();
+        expect(navigatorObserver.getRouteHistory().length, 1);
+        expect(appCollectStateObserver.historySub(3), []);
+        expect(oneCollectStateObserver.historySub(3), [
+          LifecycleState.started,
+          LifecycleState.created,
+          LifecycleState.destroyed,
+        ]);
+        expect(twoCollectStateObserver.historySub(3), [
+          LifecycleState.started,
+          LifecycleState.created,
+          LifecycleState.destroyed,
+        ]);
+        expect(threeCollectStateObserver.stateHistory, []);
+      });
+
       testWidgets('viewportFraction=0.5', (tester) async {
         expect(navigatorObserver.getRouteHistory().length, 0);
         pageViewController =
@@ -1309,6 +1389,72 @@ void main() {
         LifecycleState.created,
         LifecycleState.destroyed,
       ]);
+    });
+
+    testWidgets('LifecyclePageView no pageController', (tester) async {
+      expect(navigatorObserver.getRouteHistory().length, 0);
+      await tester.pumpWidget(
+        LifecycleTestApp(
+          observer: appCollectStateObserver,
+          navigatorObserver: navigatorObserver,
+          home: LifecyclePageView(
+            itemKeepAlive: true,
+            children: [
+              LifecycleObserverWatcher(observer: oneCollectStateObserver),
+              LifecycleObserverWatcher(observer: twoCollectStateObserver),
+              LifecycleObserverWatcher(observer: threeCollectStateObserver),
+            ],
+          ),
+        ),
+      );
+
+      expect(navigatorObserver.getRouteHistory().length, 1);
+
+      expect(oneCollectStateObserver.stateHistory, [
+        LifecycleState.created,
+        LifecycleState.started,
+        LifecycleState.resumed
+      ]);
+      expect(twoCollectStateObserver.stateHistory, []);
+      expect(threeCollectStateObserver.stateHistory, []);
+
+      await tester.fling(
+        find.byType(LifecyclePageView),
+        const Offset(-300, 0),
+        1000, // pixels/second
+      );
+
+      await tester.pumpAndSettle();
+      expect(navigatorObserver.getRouteHistory().length, 1);
+      expect(appCollectStateObserver.historySub(3), []);
+      expect(oneCollectStateObserver.historySub(3), [
+        LifecycleState.started,
+        LifecycleState.created,
+      ]);
+      expect(twoCollectStateObserver.stateHistory, [
+        LifecycleState.created,
+        LifecycleState.started,
+        LifecycleState.resumed,
+      ]);
+      expect(threeCollectStateObserver.stateHistory, []);
+
+      navigatorObserver.navigator?.pushReplacement(
+          MaterialPageRoute(builder: (_) => SizedBox.shrink()));
+
+      await tester.pumpAndSettle();
+      expect(navigatorObserver.getRouteHistory().length, 1);
+      expect(appCollectStateObserver.historySub(3), []);
+      expect(oneCollectStateObserver.historySub(3), [
+        LifecycleState.started,
+        LifecycleState.created,
+        LifecycleState.destroyed,
+      ]);
+      expect(twoCollectStateObserver.historySub(3), [
+        LifecycleState.started,
+        LifecycleState.created,
+        LifecycleState.destroyed,
+      ]);
+      expect(threeCollectStateObserver.stateHistory, []);
     });
 
     group('TabBarView', () {

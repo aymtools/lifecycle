@@ -43,13 +43,16 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
       late Element? parent = parentProvider?.call();
       if (parent == null) {
         parent = contextProvider() as Element;
-        assert(parent.mounted);
+        // flutter 2.17 中无法使用断言 parent.mounted
+        // assert(parent.mounted);
         parent.visitAncestorElements((element) {
           parent = element;
           return false;
         });
       }
-      assert(parent?.mounted == true);
+
+      // flutter 2.17 中无法使用断言 parent.mounted
+      // assert(parent?.mounted == true);
 
       final lifecycle = Lifecycle.of(parent!, listen: false);
       return lifecycle;

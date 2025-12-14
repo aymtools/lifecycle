@@ -134,7 +134,7 @@ mixin LifecycleRegistryElementMixin on ComponentElement
       _delegate.removeLifecycleObserver(observer,
           willEnd: willEnd, fullCycle: fullCycle);
 
-  bool _isFirstBuild = true;
+  // bool _isFirstBuild = true;
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -155,17 +155,20 @@ mixin LifecycleRegistryElementMixin on ComponentElement
     }
     _delegate.initState();
     super.mount(parent, newSlot);
+    // 由此处来处理首次的 didChangeDependencies 代替 rebuild({bool force = false}) 首次处理
+    _delegate.didChangeDependencies();
     _delegate.parentProvider = null;
   }
 
-  @override
-  void rebuild({bool force = false}) {
-    if (_isFirstBuild) {
-      _isFirstBuild = false;
-      _delegate.didChangeDependencies();
-    }
-    super.rebuild(force: force);
-  }
+  // flutter 2.17中 无参数 由 mount 来保证首次didChangeDependencies的处理
+  // @override
+  // void rebuild({bool force = false}) {
+  //   if (_isFirstBuild) {
+  //     _isFirstBuild = false;
+  //     _delegate.didChangeDependencies();
+  //   }
+  //   super.rebuild(force: force);
+  // }
 
   @override
   void unmount() {

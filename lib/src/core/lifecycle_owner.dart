@@ -49,7 +49,7 @@ class _LifecycleOwnerElement extends StatefulElement {
 
   _LifecycleOwnerElement(LifecycleOwnerWidget super.widget);
 
-  bool _isFirstBuild = true;
+  // bool _isFirstBuild = true;
 
   @override
   void update(LifecycleOwnerWidget newWidget) {
@@ -85,18 +85,20 @@ class _LifecycleOwnerElement extends StatefulElement {
     //在这里会触发首次的state.didChangeDependencies 配合firstDidChangeDependencies分发 start事件的处理
     super.mount(parent, newSlot);
 
+    // super.mount 会间接调用首次的 FirstBuild 所以可以 移除调用 void rebuild({bool force = false})
     _lifecycle.handleLifecycleEvent(LifecycleEvent.start);
   }
 
-  @override
-  void rebuild({bool force = false}) {
-    if (_isFirstBuild) {
-      _isFirstBuild = false;
-      //确保首次start触发在build之前
-      _lifecycle.handleLifecycleEvent(LifecycleEvent.start);
-    }
-    super.rebuild(force: force);
-  }
+  // flutter 2.17中 无参数 保证兼容 状态由state.didChangeDependencies 首次调用来保证首次start触发在build之前
+  // @override
+  // void rebuild({bool force = false}) {
+  //   if (_isFirstBuild) {
+  //     _isFirstBuild = false;
+  //     //确保首次start触发在build之前
+  //     _lifecycle.handleLifecycleEvent(LifecycleEvent.start);
+  //   }
+  //   super.rebuild(force: force);
+  // }
 
   @override
   void didChangeDependencies() {
