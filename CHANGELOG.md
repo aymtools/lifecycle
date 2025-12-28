@@ -1,3 +1,7 @@
+## 3.6.2
+
+* Compatible with Flutter 3.0
+
 ## 3.6.1
 
 * When moving the lifecycle state, the state is saved first and then observers are invoked.
