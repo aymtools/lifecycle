@@ -1,0 +1,4 @@
+analyzer:
+  errors:
+    deprecated_member_use: ignore
+    unused_local_variable: ignore

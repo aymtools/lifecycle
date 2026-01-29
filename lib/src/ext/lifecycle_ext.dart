@@ -197,7 +197,7 @@ class _LifecycleObserverAddToOwner<LO extends LifecycleOwner>
         t = t?.parent;
       } while (t != null);
     }
-    LifecycleOwner? find = owner._findOwner<LO>();
+    LifecycleOwner? find = owner._findOwner<LO>(test: test);
     var start = _target?.currentState ?? LifecycleState.destroyed;
     _target?.removeLifecycleObserver(_observer, fullCycle: false);
     if (find == null) {

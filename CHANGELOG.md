@@ -1,3 +1,7 @@
+## 3.6.3
+
+* Fixed the issue where the `test` parameter in `addLifecycleObserverToOwner` was not working.
+
 ## 3.6.2
 
 * Compatible with Flutter 3.0
