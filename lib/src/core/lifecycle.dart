@@ -133,6 +133,8 @@ abstract class LifecycleOwner implements ILifecycleRegistry {
   @override
   Lifecycle get lifecycle => lifecycleRegistry;
 
+  String get debugLabel => '${scope ?? ''}';
+
   @override
   void addLifecycleObserver(LifecycleObserver observer,
           {LifecycleState? startWith, bool fullCycle = true}) =>

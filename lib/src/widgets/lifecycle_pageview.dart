@@ -25,6 +25,10 @@ class LifecyclePageViewItemOwner extends LifecycleOwnerWidget {
 
 mixin LifecyclePageViewItemOwnerState
     on LifecycleOwnerStateMixin<LifecyclePageViewItemOwner> {
+  @override
+  String get debugLabel =>
+      '${widget.runtimeType}[${widget.index},$hashCode,${widget.scope ?? ''}]';
+
   // int? _lastSelectIndex;
   PageController? _controller;
 
