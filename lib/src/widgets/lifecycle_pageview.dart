@@ -272,12 +272,17 @@ class _LifecyclePageViewItemState extends State<LifecyclePageViewItemOwner>
   bool get wantKeepAlive => widget.keepAlive;
 }
 
-List<Widget> _childrenLifecycle(List<Widget> children, bool itemKeepAlive) {
+List<Widget> _childrenLifecycle(List<Widget> children, bool itemKeepAlive,
+    dynamic Function(int index)? itemScope) {
   if (children.isEmpty) return children;
   List<Widget> result = [];
   for (int i = 0; i < children.length; i++) {
     result.add(LifecyclePageViewItemOwner(
-        index: i, keepAlive: itemKeepAlive, child: children[i]));
+      index: i,
+      keepAlive: itemKeepAlive,
+      scope: itemScope?.call(i),
+      child: children[i],
+    ));
   }
   return result;
 }
@@ -288,6 +293,7 @@ class LifecyclePageView extends PageView {
   /// * [itemKeepAlive] 当前的item是否使用 [KeepAlive]
   /// * 完全可见的的item才是[resumed]
   /// 不完全可见的item是[started]，不可见的item为[created]
+  /// * [itemScopeBuilder] 指定如何构建item的[scope]
   LifecyclePageView({
     super.key,
     super.scrollDirection = Axis.horizontal,
@@ -304,12 +310,16 @@ class LifecyclePageView extends PageView {
     super.scrollBehavior,
     super.padEnds = true,
     bool itemKeepAlive = false,
-  }) : super(children: _childrenLifecycle(children, itemKeepAlive));
+    dynamic Function(int index)? itemScopeBuilder,
+  }) : super(
+            children:
+                _childrenLifecycle(children, itemKeepAlive, itemScopeBuilder));
 
   /// 添加了生命周期，适配PageView 中item的生命周期Owner
   /// * [itemKeepAlive] 当前的item是否使用 [KeepAlive]
   /// * 完全可见的的item才是[resumed]
   /// 不完全可见的item是[started]，不可见的item为[created]
+  /// * [itemScopeBuilder] 指定如何构建item的[scope]
   LifecyclePageView.builder({
     super.key,
     super.scrollDirection = Axis.horizontal,
@@ -328,6 +338,7 @@ class LifecyclePageView extends PageView {
     super.scrollBehavior,
     super.padEnds = true,
     bool itemKeepAlive = false,
+    dynamic Function(int index)? itemScopeBuilder,
   }) : super.builder(
             itemCount: itemCount,
             itemBuilder: (context, index) {
@@ -335,10 +346,12 @@ class LifecyclePageView extends PageView {
                 throw RangeError.index(index, itemCount);
               }
               return LifecyclePageViewItemOwner(
-                  index: index,
-                  keepAlive: itemKeepAlive,
-                  child: Builder(
-                      builder: (context) => itemBuilder(context, index)!));
+                index: index,
+                keepAlive: itemKeepAlive,
+                scope: itemScopeBuilder?.call(index),
+                child:
+                    Builder(builder: (context) => itemBuilder(context, index)!),
+              );
             });
 
 // LifecyclePageView.custom({
@@ -359,20 +372,20 @@ class LifecyclePageView extends PageView {
 // }) : super.custom();
 }
 
-class LifecycleTabBarViewSupport {
-  LifecycleTabBarView call({
-    Key? key,
-    List<Widget> children = const <Widget>[],
-    TabController? controller,
-    ScrollPhysics? physics,
-    DragStartBehavior dragStartBehavior = DragStartBehavior.start,
-    double viewportFraction = 1.0,
-    Clip clipBehavior = Clip.hardEdge,
-    bool itemKeepAlive = false,
-  }) {
-    return LifecycleTabBarView();
-  }
-}
+// class LifecycleTabBarViewSupport {
+//   LifecycleTabBarView call({
+//     Key? key,
+//     List<Widget> children = const <Widget>[],
+//     TabController? controller,
+//     ScrollPhysics? physics,
+//     DragStartBehavior dragStartBehavior = DragStartBehavior.start,
+//     double viewportFraction = 1.0,
+//     Clip clipBehavior = Clip.hardEdge,
+//     bool itemKeepAlive = false,
+//   }) {
+//     return LifecycleTabBarView();
+//   }
+// }
 
 /// 替换TabBarView，添加生命周期
 class LifecycleTabBarView extends TabBarView {
@@ -386,6 +399,7 @@ class LifecycleTabBarView extends TabBarView {
   /// * [itemKeepAlive] 当前的item是否使用 [KeepAlive]
   /// * 完全可见的的item才是[resumed]
   /// 不完全可见的item是[started]，不可见的item为[created]
+  /// * [itemScopeBuilder] 指定如何构建item的[scope]
   LifecycleTabBarView({
     super.key,
     List<Widget> children = const <Widget>[],
@@ -395,8 +409,14 @@ class LifecycleTabBarView extends TabBarView {
     super.viewportFraction = 1.0,
     Clip clipBehavior = Clip.hardEdge,
     bool itemKeepAlive = false,
+    dynamic Function(int index)? itemScopeBuilder,
   })  : _clipBehavior = clipBehavior,
-        super(children: _childrenLifecycle(children, itemKeepAlive));
+        super(
+            children: _childrenLifecycle(
+          children,
+          itemKeepAlive,
+          itemScopeBuilder,
+        ));
 }
 
 typedef LifecyclePageViewItem = LifecyclePageViewItemOwner;

@@ -1,6 +1,7 @@
-## 3.6.3
+## 3.7.0
 
 * Fixed the issue where the `test` parameter in `addLifecycleObserverToOwner` was not working.
+* LifecyclePageView, LifecycleTabBarView add `itemScopeBuilder` parameter.
 
 ## 3.6.2
 
