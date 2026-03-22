@@ -4,7 +4,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     on LifecycleOwnerStateMixin<T> implements _RouteChanger {
   @override
   String get debugLabel =>
-      '${widget.runtimeType}[${_modalRoute?.settings.name ?? ''},$hashCode,${widget.scope ?? ''}]';
+      '${widget.runtimeType}[${_modalRoute?.runtimeType},${_modalRoute?.settings.name ?? ''},${widget.scope ?? ''},$hashCode]';
 
   LifecycleNavigatorObserver? _observer;
 

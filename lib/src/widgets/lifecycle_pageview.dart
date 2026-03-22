@@ -27,7 +27,7 @@ mixin LifecyclePageViewItemOwnerState
     on LifecycleOwnerStateMixin<LifecyclePageViewItemOwner> {
   @override
   String get debugLabel =>
-      '${widget.runtimeType}[${widget.index},$hashCode,${widget.scope ?? ''}]';
+      '${widget.runtimeType}[${widget.index},${widget.scope ?? ''},$hashCode]';
 
   // int? _lastSelectIndex;
   PageController? _controller;

@@ -163,7 +163,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
   dynamic get scope => widget.scope;
 
   @override
-  String get debugLabel => '${widget.runtimeType}[$hashCode,${scope ?? ''}]';
+  String get debugLabel => '${widget.runtimeType}[${scope ?? ''},$hashCode]';
 
   bool _firstDidChangeDependencies = true;
 
@@ -246,7 +246,7 @@ class LifecycleOwnerMock extends LifecycleOwner {
   LifecycleOwnerMock([this.scope]);
 
   @override
-  String get debugLabel => 'LifecycleOwnerMock(${scope ?? ''})';
+  String get debugLabel => 'LifecycleOwnerMock[${scope ?? ''},$hashCode]';
 }
 
 @Deprecated('use LifecycleOwnerMock')
