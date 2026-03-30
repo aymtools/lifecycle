@@ -10,6 +10,8 @@ typedef LifecycleRegistryDetachCallback = void Function(
     Lifecycle parent, ILifecycleRegistry childOwner);
 
 ///全局的lifecycle互相绑定回调处理
+/// 所有注册的callback 都是直接调用 没有try catch function中如果有异常会直接影响框架的运行。
+/// **请勿直接强引用所有回调中的的[LifecycleOwner],[Lifecycle]会影响回收逻辑**
 class LifecycleCallbacks {
   LifecycleCallbacks._();
 
