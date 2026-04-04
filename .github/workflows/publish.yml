@@ -14,4 +14,4 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: aymtools/flutter-ci/.github/workflows/flutter-publish.yml@v3
+    uses: aymtools/flutter-ci/.github/workflows/flutter-publish.yml@v4
