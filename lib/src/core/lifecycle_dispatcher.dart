@@ -286,7 +286,7 @@ class _LifecycleObserverProxyDispatcher extends _LifecycleObserverDispatcher {
 
   final _LifecycleObserverDispatcher _dispatcher;
 
-  bool _willToLifecycle = true;
+  bool willToLifecycle = true;
   final bool _destroyWithRegistry;
 
   _LifecycleObserverProxyDispatcher(super.observer, super.state,
@@ -296,7 +296,7 @@ class _LifecycleObserverProxyDispatcher extends _LifecycleObserverDispatcher {
 
   @override
   void dispatchEvent(LifecycleOwner owner, LifecycleEvent event) {
-    if (!_willToLifecycle) {
+    if (!willToLifecycle) {
       _dispatcher._state = _state;
       _dispatcher.dispatchEvent(owner, event);
     }

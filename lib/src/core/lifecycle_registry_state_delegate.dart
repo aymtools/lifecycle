@@ -102,7 +102,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     final life = (_lifecycle as _LifecycleRegistryImpl?);
 
     dispatchers = dispatchers
-        .where((e) => e._dispatcher._state != toState && e._willToLifecycle);
+        .where((e) => e._dispatcher._state != toState && e.willToLifecycle);
 
     for (var dispatcher in dispatchers) {
       final observer = dispatcher._observer;
@@ -115,7 +115,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
           _observers.containsKey(observer) &&
           life != null &&
           inner._state == dispatcher._state) {
-        dispatcher._willToLifecycle = false;
+        dispatcher.willToLifecycle = false;
         if (!dispatcher._destroyWithRegistry) {
           life._observers[observer] = inner;
           _observers.remove(observer);
@@ -273,7 +273,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
         /// 如果是跟随register销毁的 则进行状态移动到destroyed
         _LifecycleRegistryImpl._moveState(lifecycle.owner,
             dispatcher._dispatcher, LifecycleState.destroyed, checker);
-      } else if (dispatcher._willToLifecycle) {
+      } else if (dispatcher.willToLifecycle) {
         /// 如果是要添加到lifecycle的 则进行添加到目标对象
         /// 先移动到目标状态
         if (dispatcher._dispatcher._state != lState) {
