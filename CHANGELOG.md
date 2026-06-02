@@ -1,3 +1,8 @@
+## 3.8.0
+
+* Optimized the lifecycle transition logic of LifecycleRouteOwnerState and added support for
+  listening to route animation states.
+
 ## 3.7.0
 
 * Fixed the issue where the `test` parameter in `addLifecycleObserverToOwner` was not working.

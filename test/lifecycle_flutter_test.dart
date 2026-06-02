@@ -249,16 +249,17 @@ void main() {
       await tester.pump(); // 触发动画开始
 
       // Home: Resumed -> Started -> Created (因为被覆盖，不可见)
-      // Next: Created -> Started -> Resumed
+      // Next: Created -> Started
       expect(observerPageHome.historySub(3),
           [LifecycleState.started, LifecycleState.created]);
       expect(observerPageNext.stateHistory, [
         LifecycleState.created,
         LifecycleState.started,
-        LifecycleState.resumed
       ]);
 
       await tester.pumpAndSettle(); // 等待转场结束
+      // Next:  Started -> Resumed
+      expect(observerPageNext.historySub(2), [LifecycleState.resumed]);
 
       expect(navigatorObserver.getTopRoute()?.settings.name, '/next');
       final routes = navigatorObserver.getRouteHistory();
@@ -303,10 +304,9 @@ void main() {
 
       await tester.pump(); // 触发动画
 
-      // Home 开始恢复: Created -> Started -> Resumed
+      // Home 开始恢复: Created -> Started
       expect(observerPageHome.historySub(5), [
         LifecycleState.started,
-        LifecycleState.resumed,
       ]);
       // Next 开始销毁: Resumed -> Started -> Created
       expect(observerPageNext.historySub(7), [
@@ -314,7 +314,12 @@ void main() {
         LifecycleState.created,
       ]);
 
-      await tester.pumpAndSettle(); // 等待销毁
+      await tester.pumpAndSettle(); // 等待动画
+
+      // Home Started -> Resumed
+      expect(observerPageHome.historySub(6), [
+        LifecycleState.resumed,
+      ]);
 
       // 最终确认
       expect(observerPageHome.historySub(5), [
@@ -396,10 +401,12 @@ void main() {
       expect(observerDialog.stateHistory, [
         LifecycleState.created,
         LifecycleState.started,
-        LifecycleState.resumed
       ]);
 
       await tester.pumpAndSettle(); // 等待转场动画完成
+
+      // Dialog -> Resumed
+      expect(observerDialog.historySub(2), [LifecycleState.resumed]);
 
       // 再次确认状态稳定
       expect(observerPageHome.historySub(3), [LifecycleState.started]);

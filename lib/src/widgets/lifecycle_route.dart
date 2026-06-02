@@ -8,13 +8,11 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
 
   LifecycleNavigatorObserver? _observer;
 
+  ModalRoute? _currRoute;
+
   Route? get _modalRoute {
     if (widget.route != null) return widget.route;
-    try {
-      return ModalRoute.of(context);
-    } catch (_) {
-      return null;
-    }
+    return _currRoute;
   }
 
   @override
@@ -23,6 +21,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _currRoute = ModalRoute.of(context);
 
     var observer = LifecycleNavigatorObserver.maybeOf(context);
     if (observer != _observer) {
@@ -36,6 +35,7 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
   @override
   void dispose() {
     _observer?._unsubscribe(this);
+    _currRoute = null;
     super.dispose();
     _observer = null;
   }
@@ -68,6 +68,13 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
 
   bool _doubleCheck = false;
 
+  void _waitAnimation(AnimationStatus state) {
+    if (state == AnimationStatus.completed ||
+        state == AnimationStatus.dismissed) {
+      _scheduleHandleResumeNextFrame();
+    }
+  }
+
   void _scheduleHandleResumeNextFrame() {
     if (_observer == null) return;
     _doubleCheck = false;
@@ -85,7 +92,21 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
       final isCurrent = modalRoute.isCurrent;
       final isActive = modalRoute.isActive;
       if (isCurrent) {
-        lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        if (modalRoute is TransitionRoute) {
+          final anim = modalRoute.animation;
+          final anim2 = modalRoute.secondaryAnimation;
+          if (anim?.isAnimating == true) {
+            lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+            anim?.addStatusListener(_waitAnimation);
+          } else if (anim2?.isAnimating == true) {
+            lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
+            anim2?.addStatusListener(_waitAnimation);
+          } else {
+            lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+          }
+        } else {
+          lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
+        }
       } else if (isActive) {
         // if (observer.getTopRoute() == modalRoute) {
         //   lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.resume);
