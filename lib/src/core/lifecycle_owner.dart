@@ -207,7 +207,7 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
       if (lifecycleRegistry.currentLifecycleState < LifecycleState.started) {
         lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.start);
       }
-      WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
+      runInPostFrameCallbackOrNext(_defDispatchResume);
     }
   }
 
@@ -217,11 +217,11 @@ mixin LifecycleOwnerStateMixin<LOW extends LifecycleOwnerWidget> on State<LOW>
     _isInactivate = true;
     if (!customDispatchEvent &&
         lifecycleRegistry.currentLifecycleState < LifecycleState.resumed) {
-      WidgetsBinding.instance.addPostFrameCallback(_defDispatchResume);
+      runInPostFrameCallbackOrNext(_defDispatchResume);
     }
   }
 
-  void _defDispatchResume(dynamic _) {
+  void _defDispatchResume() {
     if (_isInactivate &&
         !customDispatchEvent &&
         currentLifecycleState > LifecycleState.destroyed) {

@@ -317,7 +317,8 @@ void main() {
       await tester.pumpAndSettle(); // 等待动画
 
       // Home Started -> Resumed
-      expect(observerPageHome.historySub(6), [
+      expect(observerPageHome.historySub(5), [
+        LifecycleState.started,
         LifecycleState.resumed,
       ]);
 

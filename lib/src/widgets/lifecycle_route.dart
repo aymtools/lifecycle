@@ -75,11 +75,18 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
     }
   }
 
+  bool _isAnimating(Animation<dynamic>? anim) {
+    if (anim == null) return false;
+    final state = anim.status;
+    return state == AnimationStatus.forward || state == AnimationStatus.reverse;
+  }
+
   void _scheduleHandleResumeNextFrame() {
     if (_observer == null) return;
     _doubleCheck = false;
     if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+
+    runInPostFrameCallbackOrNext(() {
       if (_doubleCheck) return;
       _doubleCheck = true;
       final modalRoute = _modalRoute;
@@ -95,10 +102,10 @@ mixin LifecycleRouteOwnerState<T extends LifecycleRouteOwner>
         if (modalRoute is TransitionRoute) {
           final anim = modalRoute.animation;
           final anim2 = modalRoute.secondaryAnimation;
-          if (anim?.isAnimating == true) {
+          if (_isAnimating(anim)) {
             lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
             anim?.addStatusListener(_waitAnimation);
-          } else if (anim2?.isAnimating == true) {
+          } else if (_isAnimating(anim2)) {
             lifecycleRegistry.handleLifecycleEvent(LifecycleEvent.pause);
             anim2?.addStatusListener(_waitAnimation);
           } else {

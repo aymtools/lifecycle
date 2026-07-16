@@ -222,7 +222,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
     if (isFirst) {
       _isActivated = true;
       _changeToState(LifecycleState.started);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      runInPostFrameCallbackOrNext(() {
         if (_currState > LifecycleState.initialized && _isActivated) {
           _changeToState(LifecycleState.resumed);
         }
@@ -238,7 +238,7 @@ class LifecycleRegistryStateDelegate implements LifecycleRegistryState {
   void activate() {
     // _currState = LifecycleState.started;
     _isActivated = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    runInPostFrameCallbackOrNext(() {
       if (_currState > LifecycleState.initialized && _isActivated) {
         _changeToState(LifecycleState.resumed);
       }

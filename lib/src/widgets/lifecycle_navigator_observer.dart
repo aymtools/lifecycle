@@ -1,6 +1,7 @@
 import 'package:anlifecycle/src/core/lifecycle.dart';
 import 'package:anlifecycle/src/tools/expando_ext.dart';
 import 'package:anlifecycle/src/tools/list_ext.dart';
+import 'package:anlifecycle/src/tools/run_in_post_frame.dart';
 import 'package:flutter/widgets.dart';
 
 part 'lifecycle_route.dart';

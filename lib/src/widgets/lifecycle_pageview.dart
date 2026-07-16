@@ -1,4 +1,5 @@
 import 'package:anlifecycle/src/core/lifecycle.dart';
+import 'package:anlifecycle/src/tools/run_in_post_frame.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -53,14 +54,15 @@ mixin LifecyclePageViewItemOwnerState
             ? _dispatchLifecycleEvent2
             : _dispatchLifecycleEvent;
       }
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pageSelectedDispatchEvent();
-      });
+      // WidgetsBinding.instance
+      //     .addPostFrameCallback((_) => _pageSelectedDispatchEvent());
+      runInPostFrameCallbackOrNext(_pageSelectedDispatchEvent);
     } else if (lastController == null && controller != null) {
       ///  如果未找到 PageView的Controller 则遵从默认规则直接到 resume
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _pageSelectedDispatchEvent();
-      });
+      // WidgetsBinding.instance
+      //     .addPostFrameCallback((_) => _pageSelectedDispatchEvent());
+
+      runInPostFrameCallbackOrNext(_pageSelectedDispatchEvent);
     }
   }
 

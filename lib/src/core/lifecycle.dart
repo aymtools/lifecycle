@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:anlifecycle/src/tools/run_in_post_frame.dart';
 import 'package:flutter/widgets.dart';
 
 part 'lifecycle_callback.dart';
