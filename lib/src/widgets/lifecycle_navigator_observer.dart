@@ -275,7 +275,7 @@ class _HookOverlayEntry extends OverlayEntry {
   /// 编译时保持名字不要混淆
   /// flutter 3.19.0 才加入的
   @pragma('vm:keep-name')
-  @override
+  // ignore: annotate_overrides
   bool get canSizeOverlay {
     try {
       return (source as dynamic).canSizeOverlay;

@@ -24,6 +24,8 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
+
       expect(observerApp.stateHistory, [
         LifecycleState.created,
         LifecycleState.started,
@@ -50,6 +52,9 @@ void main() {
       await tester.pump();
       expect(observerApp.historySub(5), [LifecycleState.started]);
       expect(observerPage.historySub(5), [LifecycleState.started]);
+
+      //restore
+      binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     });
 
     // testWidgets('pushRoute', (tester) async {
@@ -178,6 +183,7 @@ void main() {
 
     testWidgets('pushRoute', (tester) async {
       // 1. 准备观察者
+      final observerPageApp = TestLifecycleCollectStateObserver();
       final observerPageHome = TestLifecycleCollectStateObserver();
       final observerPageNext = TestLifecycleCollectStateObserver();
       final navigatorObserver = LifecycleNavigatorObserver.hookMode();
@@ -217,6 +223,7 @@ void main() {
         LifecycleTestApp(
           initRouteName: '/',
           navigatorObserver: navigatorObserver,
+          observer: observerPageApp,
           onGenerateRoute: (settings) {
             switch (settings.name) {
               case '/':
@@ -231,7 +238,13 @@ void main() {
           },
         ),
       );
+      await tester.pumpAndSettle();
 
+      expect(observerPageApp.stateHistory, [
+        LifecycleState.created,
+        LifecycleState.started,
+        LifecycleState.resumed
+      ]);
       // --- 阶段 1: 初始状态 (Home) ---
       expect(observerPageHome.stateHistory, [
         LifecycleState.created,
@@ -379,6 +392,8 @@ void main() {
           home: home,
         ),
       );
+
+      await tester.pumpAndSettle();
 
       // --- 阶段 1: 初始加载 ---
       expect(observerPageHome.stateHistory, [

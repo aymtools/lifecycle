@@ -398,7 +398,8 @@ class LifecycleTabBarView extends TabBarView {
   //  flutter 2.17没有此属性 以继承的方式来兼容新旧版本
   final Clip _clipBehavior;
 
-  @override
+  // 低版本不存在，高版本存在，禁用overrides检查
+  // ignore: annotate_overrides
   Clip get clipBehavior => _clipBehavior;
 
   /// 添加了生命周期，适配TabBarView 中item的生命周期Owner
