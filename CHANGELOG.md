@@ -1,3 +1,8 @@
+## 3.8.1
+
+* `LifecycleTabBarView` will be migrated to the `an_material_ui` library. This library is currently
+  marked as deprecated to decouple from Material.
+
 ## 3.8.0
 
 * Optimized the lifecycle transition logic of LifecycleRouteOwnerState and added support for
@@ -67,11 +72,11 @@
 
 ## 3.1.1
 
-- LifecycleNavigatorObserver.hookMode() adjusts the obfuscation retention for compatibility mode.
+- LifecycleNavigatorObserver.hookMode () adjusts the obfuscation retention for compatibility mode.
 
 ## 3.1.0
 
-- Fix _HookOverlayEntry(`LifecycleNavigatorObserver.hookMode()`) passing opaque
+- Fix _HookOverlayEntry (`LifecycleNavigatorObserver.hookMode()`) passing opaque
 
 ## 3.0.3
 
