@@ -1,9 +1,9 @@
 import 'package:anlifecycle/anlifecycle.dart';
+import 'package:anlifecycle/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'tools.dart';
-import 'tools_flutter.dart';
+import 'tools_app.dart';
 
 void main() {
   late TestWidgetsFlutterBinding binding;

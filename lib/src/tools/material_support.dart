@@ -20,7 +20,7 @@ import 'package:flutter/material.dart';
 // }
 
 /// 替换TabBarView，添加生命周期
-@Deprecated('use package:an_material_ui, will remove v3.8.1')
+@Deprecated('use package:an_lifecycle_material_ext, will remove v3.8.1')
 class LifecycleTabBarView extends TabBarView {
   //  flutter 2.17没有此属性 以继承的方式来兼容新旧版本
   final Clip _clipBehavior;

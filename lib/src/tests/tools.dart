@@ -1,5 +1,7 @@
 import 'package:anlifecycle/anlifecycle.dart';
+import 'package:flutter/widgets.dart';
 
+@visibleForTesting
 class TestLifecycleEventObserver with LifecycleEventObserver {
   LifecycleEvent? lastEvent;
 
@@ -62,6 +64,7 @@ class TestLifecycleEventObserver with LifecycleEventObserver {
   }
 }
 
+@visibleForTesting
 class TestLifecycleStateChangeObserver with LifecycleStateChangeObserver {
   LifecycleState? lastState;
   final List<LifecycleState> stateHistory = [];
@@ -81,6 +84,7 @@ class TestLifecycleStateChangeObserver with LifecycleStateChangeObserver {
   }
 }
 
+@visibleForTesting
 class TestLifecycleCollectEventObserver with LifecycleEventObserver {
   final List<LifecycleEvent> eventHistory = [];
 
@@ -98,6 +102,7 @@ class TestLifecycleCollectEventObserver with LifecycleEventObserver {
       eventHistory.sublist(start, end);
 }
 
+@visibleForTesting
 class TestLifecycleCollectStateObserver with LifecycleStateChangeObserver {
   final List<LifecycleState> stateHistory = [];
 

@@ -1,7 +1,6 @@
 import 'package:anlifecycle/anlifecycle.dart';
+import 'package:anlifecycle/test.dart';
 import 'package:test/test.dart';
-
-import 'tools.dart';
 
 void main() {
   late LifecycleRegistry appRegistry;

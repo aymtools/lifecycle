@@ -88,7 +88,7 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-#### 1.2 If you also need to observe the lifecycle of items within a PageView or TabBarView, you can replace them with LifecyclePageView or LifecycleTabBarView.
+#### 1.2 If you also need to observe the lifecycle of items within a PageView or TabBarView, you can replace them with LifecyclePageView or LifecycleTabBarView(package:[an_lifecycle_material_ext](https://pub.dev/packages/an_lifecycle_material_ext)).
 
 ```dart
 class PageViewDemo extends StatelessWidget {
